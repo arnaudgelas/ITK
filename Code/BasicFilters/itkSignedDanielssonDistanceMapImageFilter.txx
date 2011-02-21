@@ -42,10 +42,10 @@ SignedDanielssonDistanceMapImageFilter< TInputImage, TOutputImage >
   this->SetNthOutput( 2, distanceVectors.GetPointer() );
 
   //Default values
-  this->m_SquaredDistance     = false;  //Should we remove this ?
-                                        //doesn't make sense in a SignedDaniel
-  this->m_UseImageSpacing     = false;
-  this->m_InsideIsPositive    = false;
+  m_SquaredDistance     = false;  //Should we remove this ?
+                                  //doesn't make sense in a SignedDaniel
+  m_UseImageSpacing     = false;
+  m_InsideIsPositive    = false;
 }
 
 /** This is overloaded to create the VectorDistanceMap output image */
@@ -113,15 +113,19 @@ void SignedDanielssonDistanceMapImageFilter< TInputImage, TOutputImage >
   typename ProgressAccumulator::Pointer progress = ProgressAccumulator::New();
   progress->SetMiniPipelineFilter(this);
 
+  // Arnaud: what about using 1 thread per Computation of distance map ?
   typedef DanielssonDistanceMapImageFilter<
     InputImageType, OutputImageType >  FilterType;
   typename FilterType::Pointer filter1 = FilterType::New();
   typename FilterType::Pointer filter2 = FilterType::New();
 
-  filter1->SetInputIsBinary(true);    // Force signed distance map to work on
-  filter2->SetInputIsBinary(true);    // binary images
+  // Force signed distance map to work on binary images
+  filter1->SetInputIsBinary(true);
+  filter2->SetInputIsBinary(true);
+
   filter1->SetUseImageSpacing(m_UseImageSpacing);
   filter2->SetUseImageSpacing(m_UseImageSpacing);
+
   filter1->SetSquaredDistance(m_SquaredDistance);
   filter2->SetSquaredDistance(m_SquaredDistance);
 
@@ -130,18 +134,18 @@ void SignedDanielssonDistanceMapImageFilter< TInputImage, TOutputImage >
   typedef Functor::InvertIntensityFunctor< InputPixelType > FunctorType;
   typedef UnaryFunctorImageFilter< InputImageType,
                                    InputImageType,
-                                   FunctorType >             InverterType;
+                                   FunctorType >            InverterType;
 
   typename InverterType::Pointer inverter = InverterType::New();
 
   inverter->SetInput( this->GetInput() );
 
-  //Dilate the inverted image by 1 pixel to give it the same boundary
-  //as the univerted input.
+  // Dilate the inverted image by 1 pixel to give it the same boundary
+  // as the uninverted input.
 
   typedef BinaryBallStructuringElement<
     InputPixelType,
-    InputImageDimension  > StructuringElementType;
+    InputImageDimension > StructuringElementType;
 
   typedef BinaryDilateImageFilter<
     InputImageType,

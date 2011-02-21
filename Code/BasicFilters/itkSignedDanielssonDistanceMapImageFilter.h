@@ -30,9 +30,9 @@ template< class InputPixelType >
 class InvertIntensityFunctor
 {
 public:
-  InputPixelType operator()(InputPixelType input) const
+  InputPixelType operator()( const InputPixelType& input) const
   {
-    if ( input )
+    if ( input != NumericTraits< InputPixelType >::Zero )
       {
       return NumericTraits< InputPixelType >::Zero;
       }
@@ -49,8 +49,8 @@ namespace itk
 {
 /** \class SignedDanielssonDistanceMapImageFilter
  *
- * This class is parametrized over the type of the input image
- * and the type of the output image.
+ * \tparam TInputImage Input Image Type
+ * \tparam TOutputImage Output Image Type
  *
  * This filter computes the distance map of the input image
  * as an approximation with pixel accuracy to the Euclidean distance.
@@ -58,26 +58,27 @@ namespace itk
  * For purposes of evaluating the signed distance map, the input is assumed
  * to be binary composed of pixels with value 0 and non-zero.
  *
- * The inside is considered as having negative distances. Outside is treated
- * as having positive distances. To change the convention,
- * use the InsideIsPositive(bool) function.
+ * The inside is considered as having negative distances.
+ * Outside is treated as having positive distances.
+ * To change the convention, use the InsideIsPositive(bool) function.
  *
- * As a convention, the distance is evaluated from the boundary of the ON pixels.
+ * As a convention, the distance is evaluated from the boundary of the ON
+ * pixels.
  *
  * The filter returns
- * - A signed distance map with the approximation to the euclidean distance.
- * - A voronoi partition. (See itkDanielssonDistanceMapImageFilter)
- * - A vector map containing the component of the vector relating
+ * \li A signed distance map with the approximation to the Euclidean distance.
+ * \li A Voronoi partition. (\see DanielssonDistanceMapImageFilter)
+ * \li A vector map containing the component of the vector relating
  *   the current pixel with the closest point of the closest object
  *   to this pixel. Given that the components of the distance are
  *   computed in "pixels", the vector is represented by an
  *   itk::Offset.  That is, physical coordinates are not used.
- *   (See itkDanielssonDistanceMapImageFilter)
+ *   (\see DanielssonDistanceMapImageFilter)
  *
- * This filter internally uses the DanielssonDistanceMap filter.
+ * This filter internally uses DanielssonDistanceMapImageFilter.
  * This filter is N-dimensional.
  *
- * \sa itkDanielssonDistanceMapImageFilter
+ * \sa DanielssonDistanceMapImageFilter
  *
  * \ingroup ImageFeatureExtraction
  *
