@@ -98,7 +98,7 @@ private:
 
 // -----------------------------------------------------------------------------
 
-int main( int argc, char* argv[] )
+int itkFastMarchingBaseTest( int argc, char* argv[] )
 {
   if( argc != 2 )
     {

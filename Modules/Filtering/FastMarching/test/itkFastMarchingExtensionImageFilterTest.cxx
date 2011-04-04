@@ -41,7 +41,7 @@ public:
 };
 }
 
-int main(int, char* [] )
+int itkFastMarchingExtensionImageFilterTest(int, char* [] )
 {
   // create a fastmarching object
   const unsigned int Dimension = 2;

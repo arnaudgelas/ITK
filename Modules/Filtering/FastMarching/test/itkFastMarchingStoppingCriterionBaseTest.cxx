@@ -55,7 +55,7 @@ namespace itk
     };
 }
 
-int main( int argc, char* argv[] )
+int itkFastMarchingStoppingCriterionBaseTest( int argc, char* argv[] )
   {
   (void) argc;
   (void) argv;

@@ -21,7 +21,7 @@
 #include "itkImage.h"
 #include "itkMesh.h"
 
-int main( int argc, char* argv[] )
+int itkFastMarchingThresholdStoppingCriterionTest( int argc, char* argv[] )
   {
   (void) argc;
   (void) argv;

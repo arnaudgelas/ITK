@@ -259,7 +259,7 @@ int FastMarchingImageFilter( unsigned int argc, char *argv[] )
   return EXIT_SUCCESS;
 }
 
-int main( int argc, char *argv[] )
+int itkFastMarchingImageTopologicalTest( int argc, char *argv[] )
 {
   if( argc < 6 )
     {

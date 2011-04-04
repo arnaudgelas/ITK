@@ -41,7 +41,7 @@
 //};
 //}
 
-int main(int, char* [] )
+int itkFastMarchingUpwindGradientBaseTest(int, char* [] )
 {
 
   itk::OutputWindow::SetInstance(itk::TextOutput::New().GetPointer());

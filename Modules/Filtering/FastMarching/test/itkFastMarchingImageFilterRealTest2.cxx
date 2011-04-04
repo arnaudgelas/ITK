@@ -43,7 +43,7 @@ public:
 };
 }
 
-int main(int argc, char* argv[] )
+int itkFastMarchingImageFilterRealTest2(int argc, char* argv[] )
 {
   (void) argc;
   (void) argv;
