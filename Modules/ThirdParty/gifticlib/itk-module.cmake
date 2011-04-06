@@ -1,1 +1,1 @@
-itk_module(ITK-giftilib DEPENDS ITK-ZLIB ITK-Expat)
+itk_module(ITK-gifticlib DEPENDS ITK-ZLIB ITK-Expat ITK-NIFTI)
