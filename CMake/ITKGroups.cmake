@@ -116,6 +116,7 @@ ITK-NrrdIO
 ITK-NIFTI
 ITK-MetaIO
 ITK-GDCM
+ITK-gifticlib
 ITK-OpenJPEG
 ITK-ZLIB
 ITK-VNLInstantiation
