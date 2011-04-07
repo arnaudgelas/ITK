@@ -242,10 +242,6 @@ UpdateValue( OutputImageType* oImage, const NodeType& iNode )
 
     this->SetLabelValueForGivenNode( iNode, Superclass::Trial );
 
-    //node.SetValue( outputPixel );
-    //node.SetIndex( index );
-    //m_TrialHeap.push(node);
-
     // insert point into trial heap
     this->m_Heap.push( NodePairType( iNode, outputPixel ) );
     }

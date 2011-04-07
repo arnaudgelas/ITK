@@ -67,8 +67,8 @@ class FastMarchingImageFilterBase :
 public:
   typedef ImageFastMarchingTraits< VDimension, TInputPixel, TOutputPixel > Traits;
 
-  typedef FastMarchingImageFilterBase            Self;
-  typedef FastMarchingBase< Traits >             Superclass;
+  typedef FastMarchingImageFilterBase Self;
+  typedef FastMarchingBase< Traits >  Superclass;
   typedef SmartPointer< Self >        Pointer;
   typedef SmartPointer< const Self >  ConstPointer;
 

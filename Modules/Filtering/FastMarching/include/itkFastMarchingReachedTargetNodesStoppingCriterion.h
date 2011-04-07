@@ -24,6 +24,12 @@
 
 namespace itk
 {
+/** \class FastMarchingReachedTargetNodesStoppingCriterion
+    \brief Stopping criterion for FastMarchingFilterBase.
+
+    Stopping criterion where the condition is satisfied when the front
+    reaches one, several or all target nodes (provided by the user).
+*/
   template< class TNode,
            typename TValue >
   class FastMarchingReachedTargetNodesStoppingCriterion :
@@ -45,12 +51,14 @@ namespace itk
     typedef typename Superclass::ValueType  ValueType;
     typedef typename Superclass::NodeType   NodeType;
 
+    /** \enum TargetConditionType */
     enum TargetConditionType { OneTarget = 1,
                                SomeTargets,
                                AllTargets };
 
-    /** Set/Get boolean macro indicating whether the user wants to check topology. */
-    void SetTargetCondition( TargetConditionType iCondition )
+    /** Set/Get TargetCondition to indicate if the user wants the front to
+    reach one, some or all target nodes. */
+    void SetTargetCondition( const TargetConditionType& iCondition )
       {
       m_TargetCondition = iCondition;
       m_Initialized = false;
@@ -59,10 +67,12 @@ namespace itk
 
     itkGetConstReferenceMacro( TargetCondition, TargetConditionType );
 
+    /** Set/Get TargetOffset */
     itkSetMacro( TargetOffset, ValueType );
     itkGetMacro( TargetOffset, ValueType );
 
-    void SetNumberOfTargetsToBeReached( size_t iN )
+    /** \brief Set the number of target nodes to be reached */
+    void SetNumberOfTargetsToBeReached( const size_t& iN )
       {
       m_NumberOfTargetsToBeReached = iN;
       m_Initialized = false;
@@ -77,6 +87,7 @@ namespace itk
       this->Modified();
       }
 
+    /** \brief Set the current node */
     void SetCurrentNode( const NodeType& iNode )
       {
       if( !m_Initialized )
@@ -118,17 +129,21 @@ namespace itk
         }
       }
 
+    /** \brief returns if the stopping condition is satisfied or not. */
     bool IsSatisfied() const
       {
       return m_Satisfied && ( this->m_CurrentValue >= m_StoppingValue );
       }
 
+    /** \brief Get a short description of the stopping criterion. */
     const std::string GetDescription() const
       {
       return "Target Nodes Reached with possible overshoot";
       }
 
   protected:
+
+    /** Constructor */
     FastMarchingReachedTargetNodesStoppingCriterion() : Superclass()
       {
       m_TargetCondition = AllTargets;
@@ -137,16 +152,18 @@ namespace itk
       m_Satisfied = false;
       m_Initialized = false;
       }
+
+    /** Destructor */
     ~FastMarchingReachedTargetNodesStoppingCriterion() {}
 
-    TargetConditionType m_TargetCondition;
+    TargetConditionType     m_TargetCondition;
     std::vector< NodeType > m_TargetNodes;
     std::vector< NodeType > m_ReachedTargetNodes;
-    size_t m_NumberOfTargetsToBeReached;
-    ValueType m_TargetOffset;
-    ValueType m_StoppingValue;
-    bool m_Satisfied;
-    bool m_Initialized;
+    size_t                  m_NumberOfTargetsToBeReached;
+    ValueType               m_TargetOffset;
+    ValueType               m_StoppingValue;
+    bool                    m_Satisfied;
+    bool                    m_Initialized;
 
     void Initialize()
       {
@@ -179,6 +196,10 @@ namespace itk
     void operator = ( const Self& );
     };
 
+  /**
+  \class FastMarchingImageReachedTargetNodesStoppingCriterion
+  \brief
+  */
   template< class TImage >
   class FastMarchingImageReachedTargetNodesStoppingCriterion :
     public FastMarchingReachedTargetNodesStoppingCriterion<

@@ -50,10 +50,10 @@ namespace itk
  * Cambridge Press, Second edition, 1999.
  *
  * The initial front is specified by two containers:
- * \li one containing the known nodes (Alive Nodes: nodes that are already part
- * of the object),
- * \li one containing the trial nodes (Trial Nodes: nodes that are considered
- * for inclusion).
+ * \li one containing the known nodes (Alive Nodes: nodes that are already
+ * part of the object),
+ * \li one containing the trial nodes (Trial Nodes: nodes that are
+ * considered for inclusion).
  *
  * In order for the filter to evolve, at least some trial nodes must be
  * specified. These can for instance be specified as the layer of
@@ -61,6 +61,14 @@ namespace itk
  *
  * The algorithm is terminated early by setting an appropriate stopping
  * criterion, or if there are no more nodes to process.
+ *
+ * \tparam TTraits traits which includes definition such as:
+ *    \li InputDomainType (itk::Image or itk::QuadEdgeMesh)
+ *    \li OutputDomainType (similar to InputDomainType)
+ *    \li NodeType (itk::Index if itk::Image and PointIdentifier if
+ * itk::QuadEdgeMesh)
+ *    \li NodePairType std::pair< NodeType, OutputPixelType >
+ *
  *
  * \todo In the current implemenation, std::priority_queue only allows
  * taking nodes out from the front and putting nodes in from the back.
@@ -80,27 +88,33 @@ public:
   typedef SmartPointer< Self >        Pointer;
   typedef SmartPointer< const Self >  ConstPointer;
 
-
+  /** Input Domain related definitions */
   typedef typename Traits::InputDomainType        InputDomainType;
   typedef typename Traits::InputDomainPointer     InputDomainPointer;
   typedef typename Traits::InputPixelType         InputPixelType;
 
+  /** Output Domain related definitions */
   typedef typename Traits::OutputDomainType       OutputDomainType;
   typedef typename Traits::OutputDomainPointer    OutputDomainPointer;
   typedef typename Traits::OutputPixelType        OutputPixelType;
 
+  /** \typedef NodeType type of node */
   typedef typename Traits::NodeType                 NodeType;
+
+  /** \typedef NodePairType pair of node and corresponding value */
   typedef typename Traits::NodePairType             NodePairType;
   typedef typename Traits::NodePairContainerType    NodePairContainerType;
   typedef typename Traits::NodePairContainerPointer NodePairContainerPointer;
   typedef typename Traits::NodePairContainerConstIterator
     NodePairContainerConstIterator;
 
+  /** \typedef NodeContainerType container of nodes */
   typedef typename Traits::NodeContainerType        NodeContainerType;
   typedef typename Traits::NodeContainerPointer     NodeContainerPointer;
   typedef typename Traits::NodeContainerConstIterator
     NodeContainerConstIterator;
 
+  /** \typedef StoppingCriterionType stopping criterion */
   typedef FastMarchingStoppingCriterionBase< NodeType, OutputPixelType >
     StoppingCriterionType;
   typedef typename StoppingCriterionType::Pointer StoppingCriterionPointer;
@@ -132,8 +146,8 @@ public:
     InitialTrial,
     /** \c Forbidden represent nodes where the front can not propagate */
     Forbidden,
-    /** \c Topology represent trial nodes but their inclusion would have violated
-    topology checks. */
+    /** \c Topology represent trial nodes but their inclusion would have
+    violated topology checks. */
     Topology };
 
   /** \enum TopologyCheckType */
@@ -145,19 +159,24 @@ public:
     /** \c Strict */
     Strict };
 
-  /** Set/Get boolean macro indicating whether the user wants to check topology. */
+  /** Set/Get the TopologyCheckType macro indicating whether the user
+  wants to check topology (and which one). */
   itkSetMacro( TopologyCheck, TopologyCheckType );
   itkGetConstReferenceMacro( TopologyCheck, TopologyCheckType );
 
+  /** Set/Get TrialPoints */
   itkSetObjectMacro( TrialPoints, NodePairContainerType );
   itkGetObjectMacro( TrialPoints, NodePairContainerType );
 
+  /** Set/Get AlivePoints */
   itkSetObjectMacro( AlivePoints, NodePairContainerType );
   itkGetObjectMacro( AlivePoints, NodePairContainerType );
 
+  /** Set/Get ProcessedPoints */
   itkSetObjectMacro( ProcessedPoints, NodePairContainerType );
   itkGetObjectMacro( ProcessedPoints, NodePairContainerType );
 
+  /** Set/Get ForbiddenPoints */
   itkSetObjectMacro( ForbiddenPoints, NodeContainerType );
   itkGetObjectMacro( ForbiddenPoints, NodeContainerType );
 
@@ -165,9 +184,11 @@ public:
   itkGetObjectMacro( StoppingCriterion, StoppingCriterionType );
   itkSetObjectMacro( StoppingCriterion, StoppingCriterionType );
 
+  /** \brief Set/Get SpeedConstant */
   itkGetMacro( SpeedConstant, double );
   itkSetMacro( SpeedConstant, double );
 
+  /** \brief Get the value reached by the front when it stops propagating */
   itkGetMacro( TargetReachedValue, OutputPixelType );
 
   /** Set the Collect Points flag. Instrument the algorithm to collect
@@ -176,7 +197,7 @@ public:
   * narrow banding. */
   itkSetMacro(CollectPoints, bool);
 
-  /** Get thConste Collect Points flag. */
+  /** Get the Collect Points flag. */
   itkGetConstReferenceMacro(CollectPoints, bool);
   itkBooleanMacro(CollectPoints);
 
@@ -194,6 +215,7 @@ protected:
   double m_SpeedConstant;
   double m_InverseSpeed;
   double m_NormalizationFactor;
+
   OutputPixelType m_TargetReachedValue;
   OutputPixelType m_LargeValue;
   OutputPixelType m_TopologyValue;
@@ -209,18 +231,24 @@ protected:
   typedef std::vector< NodePairType >   HeapContainerType;
   typedef std::greater< NodePairType >  NodeComparerType;
 
-  typedef std::priority_queue< NodeType, HeapContainerType, NodeComparerType >
+  typedef std::priority_queue<
+    NodeType,
+    HeapContainerType,
+    NodeComparerType >
     PriorityQueueType;
 
   PriorityQueueType m_Heap;
 
   TopologyCheckType m_TopologyCheck;
 
+  /** \brief Get the total number of nodes in the domain */
   virtual IdentifierType GetTotalNumberOfNodes() const = 0;
 
+  /** \brief Get the ouput value (front value) for a given node */
   virtual const OutputPixelType GetOutputValue( OutputDomainType* oDomain,
                                          const NodeType& iNode ) const = 0;
 
+  /** \brief Set the output value (front value) for a given node */
   virtual void SetOutputValue( OutputDomainType* oDomain,
                               const NodeType& iNode,
                               const OutputPixelType& iValue ) = 0;
@@ -267,14 +295,13 @@ protected:
   /**    */
   void GenerateData();
 
-  /**    */
+  /** \brief PrintSelf method  */
   void PrintSelf(std::ostream & os, Indent indent) const;
 
 private:
   FastMarchingBase( const Self& );
   void operator = ( const Self& );
   };
-
 }
 
 #include "itkFastMarchingBase.txx"

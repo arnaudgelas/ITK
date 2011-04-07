@@ -24,7 +24,9 @@
 
 namespace itk
 {
-
+/** \class FastMarchingQuadEdgeMeshFilterBase
+  \brief
+*/
 template< unsigned int VDimension,
           typename TInputPixel,
           class TInputMeshTraits,

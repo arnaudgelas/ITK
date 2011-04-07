@@ -46,7 +46,7 @@ namespace itk
  */
 template< unsigned int VDimension,
          typename TInputPixel,
-         typename TOutputPixel,
+         typename TOutputPixel
          class TSuperclass >
 class ITK_EXPORT FastMarchingUpwindGradientImageFilterBase:
   public TSuperclass

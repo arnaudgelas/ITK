@@ -24,8 +24,6 @@
 #include "itkProgressReporter.h"
 #include "vnl/vnl_math.h"
 
-//#include "itkPriorityQueueContainer.h"
-
 namespace itk
 {
 // -----------------------------------------------------------------------------
@@ -68,6 +66,7 @@ PrintSelf( std::ostream & os, Indent indent ) const
   Superclass::PrintSelf( os, indent );
 
   os << indent << "Speed constant: " << m_SpeedConstant << std::endl;
+  os << indent << "Topology check: " << m_TopologyCheck << std::endl;
   os << indent << "Normalization Factor: " << m_NormalizationFactor << std::endl;
   }
 
