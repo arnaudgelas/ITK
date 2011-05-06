@@ -15,39 +15,36 @@
  *  limitations under the License.
  *
  *=========================================================================*/
-#ifndef __itkSPDRadialBasisFunctionKernelBase_h
-#define __itkSPDRadialBasisFunctionKernelBase_h
+#ifndef __itkCSRadialBasisFunctionKernelBase_h
+#define __itkCSRadialBasisFunctionKernelBase_h
 
 namespace itk
 {
 template< typename TScalar >
-class SPDRadialBasisFunctionKernelBase :
-  public RadialBasisFunctionKernelBase< TScalar >
+class CSRadialBasisFunctionKernelBase :
+  public SPDRadialBasisFunctionKernelBase< TScalar >
 {
 public:
-  typedef SPDRadialBasisFunctionKernelBase          Self;
-  typedef SmartPointer< Self >                      Pointer;
-  typedef SmartPointer< const Self >                ConstPointer;
-  typedef RadialBasisFunctionKernelBase< TScalar >  Superclass;
+  typedef CSRadialBasisFunctionKernelBase                       Self;
+  typedef SmartPointer< Self >                                  Pointer;
+  typedef SmartPointer< const Self >                            ConstPointer;
+  typedef SPDRadialBasisFunctionKernelBase< TScalar, TScalar >  Superclass;
 
   /** Run-time type information (and related methods). */
-  itkTypeMacro( SPDRadialBasisFunctionKernelBase,
-                RadialBasisFunctionKernelBase );
+  itkTypeMacro( CSRadialBasisFunctionKernelBase,
+                SPDRadialBasisFunctionKernelBase );
 
   typedef TScalar ScalarType;
 
-  bool IsStrictlyDefinitePositive() const
-  { return true; }
-
-  unsigned int GetOrder() const
+  bool IsCompactSupport() const
   { return true; }
 
 protected:
-  SPDRadialBasisFunctionKernelBase() : Superclass() {}
-  virtual ~SPDRadialBasisFunctionKernelBase() {}
+  CSRadialBasisFunctionKernelBase() : Superclass() {}
+  virtual ~CSRadialBasisFunctionKernelBase() {}
 
 private:
-  SPDRadialBasisFunctionKernelBase( const Self& );
+  CSRadialBasisFunctionKernelBase( const Self& );
   void operator( const Self& );
 };
 }

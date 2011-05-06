@@ -22,13 +22,13 @@ namespace itk
 {
 template< typename TScalar >
 class CPDRadialBasisFunctionKernelBase :
-  public RadialBasisFunctionKernelBase< TScalar, TScalar >
+  public RadialBasisFunctionKernelBase< TScalar >
 {
 public:
-  typedef CPDRadialBasisFunctionKernelBase                    Self;
-  typedef SmartPointer< Self >                                Pointer;
-  typedef SmartPointer< const Self >                          ConstPointer;
-  typedef RadialBasisFunctionKernelBase< TScalar, TScalar >   Superclass;
+  typedef CPDRadialBasisFunctionKernelBase           Self;
+  typedef SmartPointer< Self >                       Pointer;
+  typedef SmartPointer< const Self >                 ConstPointer;
+  typedef RadialBasisFunctionKernelBase< TScalar >   Superclass;
 
   /** Run-time type information (and related methods). */
   itkTypeMacro( CPDRadialBasisFunctionKernelBase,
