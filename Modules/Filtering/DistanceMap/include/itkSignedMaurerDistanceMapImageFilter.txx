@@ -28,35 +28,12 @@
 #include "vnl/vnl_vector.h"
 #include "vnl/vnl_math.h"
 
-//Simple functor to invert an image for Outside Danielsson distance map
-namespace itk
-{
-namespace Functor
-{
-template< class InputPixelType >
-class InvertBinaryIntensityFunctor
-{
-public:
-  InputPixelType operator()(InputPixelType input) const
-  {
-    if ( input )
-      {
-      return NumericTraits< InputPixelType >::Zero;
-      }
-    else
-      {
-      return NumericTraits< InputPixelType >::One;
-      }
-  }
-};
-}
-}
-
 namespace itk
 {
 template< class TInputImage, class TOutputImage >
 SignedMaurerDistanceMapImageFilter< TInputImage, TOutputImage >
-::SignedMaurerDistanceMapImageFilter():m_BackgroundValue(0),
+::SignedMaurerDistanceMapImageFilter():
+  m_BackgroundValue( NumericTraits< InputPixelType >::Zero ),
   m_InsideIsPositive(false),
   m_UseImageSpacing(false),
   m_SquaredDistance(true)
@@ -70,7 +47,8 @@ SignedMaurerDistanceMapImageFilter< TInputImage, TOutputImage >
 template< class TInputImage, class TOutputImage >
 unsigned int
 SignedMaurerDistanceMapImageFilter< TInputImage, TOutputImage >
-::SplitRequestedRegion(unsigned int i, unsigned int num, OutputImageRegionType & splitRegion)
+::SplitRequestedRegion(unsigned int i, unsigned int num,
+  OutputImageRegionType & splitRegion)
 {
   // Get the output pointer
   OutputImageType *outputPtr = this->GetOutput();
@@ -78,32 +56,33 @@ SignedMaurerDistanceMapImageFilter< TInputImage, TOutputImage >
   const typename TOutputImage::SizeType & requestedRegionSize =
     outputPtr->GetRequestedRegion().GetSize();
 
-  int splitAxis;
-  typename TOutputImage::IndexType splitIndex;
-  typename TOutputImage::SizeType splitSize;
-
   // Initialize the splitRegion to the output requested region
   splitRegion = outputPtr->GetRequestedRegion();
-  splitIndex = splitRegion.GetIndex();
-  splitSize = splitRegion.GetSize();
+
+  OutputIndexType splitIndex = splitRegion.GetIndex();
+  OutputSizeType  splitSize  = splitRegion.GetSize();
 
   // split on the outermost dimension available
   // and avoid the current dimension
-  splitAxis = outputPtr->GetImageDimension() - 1;
-  while ( requestedRegionSize[splitAxis] == 1 || splitAxis == (int)m_CurrentDimension )
+  int splitAxis = static_cast< int >( outputPtr->GetImageDimension() ) - 1;
+  while ( ( requestedRegionSize[splitAxis] == 1 ) ||
+          ( splitAxis == static_cast< int >( m_CurrentDimension ) ) )
     {
     --splitAxis;
     if ( splitAxis < 0 )
       { // cannot split
-      itkDebugMacro("  Cannot Split");
+      itkDebugMacro("Cannot Split");
       return 1;
       }
     }
 
   // determine the actual number of pieces that will be generated
-  typename TOutputImage::SizeType::SizeValueType range = requestedRegionSize[splitAxis];
-  unsigned int valuesPerThread = (unsigned int)vcl_ceil(range / (double)num);
-  unsigned int maxThreadIdUsed = (unsigned int)vcl_ceil(range / (double)valuesPerThread) - 1;
+  double range = static_cast< double >( requestedRegionSize[splitAxis] );
+
+  unsigned int valuesPerThread =
+    static_cast< unsigned int >( vcl_ceil( range / static_cast< double >( num ) ) );
+  unsigned int maxThreadIdUsed =
+    static_cast< unsigned int >( vcl_ceil( range / static_cast< double >( valuesPerThread ) ) ) - 1;
 
   // Split the region
   if ( i < maxThreadIdUsed )
