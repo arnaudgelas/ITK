@@ -11,10 +11,15 @@
 #
 # Requires CMake 2.6 or newer (uses the 'function' command)
 #
+#
 # Original Author:
 # 2009-2010 Ryan Pavlik <rpavlik@iastate.edu> <abiryan@ryand.net>
 # http://academic.cleardefinition.com
 # Iowa State University HCI Graduate Program/VRAC
+#
+# Addition:
+# 2011 Arnaud Gelas <arnaud_gelas@hms.harvard.edu>
+# Harvard Medical School
 #
 # Copyright Iowa State University 2009-2010.
 # Distributed under the Boost Software License, Version 1.0.
@@ -38,10 +43,95 @@ if(CPPCHECK_FOUND)
 endif()
 
 # ------------------------------------------------------------------------------
+# add_cppcheck_dir
+function(add_cppcheck_dir _name _dir _include_dirs)
+  if(CPPCHECK_FOUND)
+    set(_cppcheck_args --force --verbose )
+    set(_input ${ARGN})
+    list(FIND _input UNUSED_FUNCTIONS _unused_func)
+    if("${_unused_func}" GREATER "-1")
+      list(APPEND _cppcheck_args ${CPPCHECK_UNUSEDFUNC_ARG})
+      list(REMOVE_AT _input ${_unused_func})
+    endif()
+
+    list(FIND _input STYLE _style)
+    if("${_style}" GREATER "-1")
+      list(APPEND _cppcheck_args ${CPPCHECK_STYLE_ARG})
+      list(REMOVE_AT _input ${_style})
+    endif()
+
+    list(FIND _input POSSIBLE_ERROR _poss_err)
+    if("${_poss_err}" GREATER "-1")
+      list(APPEND _cppcheck_args ${CPPCHECK_POSSIBLEERROR_ARG})
+      list(REMOVE_AT _input ${_poss_err})
+    endif()
+
+    list(FIND _input FAIL_ON_WARNINGS _fail_on_warn)
+    if("${_fail_on_warn}" GREATER "-1")
+      list(APPEND
+        CPPCHECK_FAIL_REGULAR_EXPRESSION
+        ${CPPCHECK_WARN_REGULAR_EXPRESSION})
+      list(REMOVE_AT _input ${_fail_on_warn})
+    endif()
+
+    foreach( _includeDirs ${_include_dirs} )
+      set( _cppcheck_include ${_cppcheck_include} -I${_includeDirs} )
+    endforeach()
+
+    # --------------------------------------------------------------
+    set( _cppcheck_compile_args ${_cppcheck_include} )
+
+    if("${CMAKE_VERSION}" VERSION_LESS "2.8.0")
+      # Older than CMake 2.8.0
+      add_test(${_name}_cppcheck_test
+        "${CPPCHECK_EXECUTABLE}"
+        ${CPPCHECK_TEMPLATE_ARG}
+        ${_cppcheck_args}
+        ${_cppcheck_compile_args}
+        ${_files})
+    else()
+      # CMake 2.8.0 and newer
+      add_test(
+        NAME
+          ${_name}_cppcheck_test
+        COMMAND
+          "${CPPCHECK_EXECUTABLE}"
+          ${CPPCHECK_TEMPLATE_ARG}
+          ${_cppcheck_args}
+          ${_cppcheck_compile_args}
+          ${_files})
+    endif()
+
+  set_tests_properties(${_name}_cppcheck_test
+    PROPERTIES
+    FAIL_REGULAR_EXPRESSION
+      "${CPPCHECK_FAIL_REGULAR_EXPRESSION}")
+
+  add_custom_command(TARGET
+    all_cppcheck
+    PRE_BUILD
+    COMMAND
+      ${CPPCHECK_EXECUTABLE}
+      ${CPPCHECK_QUIET_ARG}
+      ${CPPCHECK_TEMPLATE_ARG}
+      ${_cppcheck_args}
+      ${_cppcheck_compile_args}
+      ${_dir}
+    WORKING_DIRECTORY
+      "${_dir}"
+    COMMENT
+      "${_name}_cppcheck: Running cppcheck on ${_dir}..."
+    VERBATIM)
+  endif()
+endfunction()
+
+# ------------------------------------------------------------------------------
 # add_cppcheck_sources
 function(add_cppcheck_sources _targetname)
   if(CPPCHECK_FOUND)
-    set(_cppcheck_args)
+    # Normally --force should not be required, but since all compiler definitions
+    # can't be detected, it is better to enforce testing all possibilities
+    set(_cppcheck_args --force --verbose)
     set(_input ${ARGN})
     list(FIND _input UNUSED_FUNCTIONS _unused_func)
     if("${_unused_func}" GREATER "-1")
@@ -92,8 +182,6 @@ function(add_cppcheck_sources _targetname)
       endif()
     endforeach()
 
-    message( "_files = ${_files}" )
-
     # let's take of include dirs here
     get_property( mytargINCLUDES DIRECTORY
       "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY INCLUDE_DIRECTORIES)
@@ -105,20 +193,18 @@ function(add_cppcheck_sources _targetname)
 
     # --------------------------------------------------------------
     # let's take of compile definitions here
+    # NOTE: it does not work, you need to get all definitions by
+    # another way
     get_property(mytargDEFINITIONS DIRECTORY
       "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY COMPILE_DEFINITIONS)
-
-    message("mytargDEFINITIONS: ${mytargDEFINITIONS}")
 
     set( _cppcheck_def )
     foreach( _compiledef ${mytargDEFINITIONS} )
       set( _cppcheck_def ${_cppcheck_def} -D${_compiledef} )
     endforeach()
 
-    message( "_cppcheck_def: ${_cppcheck_def}" )
-
     # --------------------------------------------------------------
-    set( _cppcheck_compile_args --force ${_cppcheck_include} ${_cppcheck_def} )
+    set( _cppcheck_compile_args ${_cppcheck_include} ${_cppcheck_def} )
 
     if("${CMAKE_VERSION}" VERSION_LESS "2.8.0")
       # Older than CMake 2.8.0
@@ -166,112 +252,109 @@ endfunction()
 
 # ------------------------------------------------------------------------------
 # add_cppcheck
-# function(add_cppcheck _name)
-#   if(NOT TARGET ${_name})
-#     message(FATAL_ERROR
-#       "add_cppcheck given a target name that does not exist: '${_name}' !")
-#   endif()
-#   if(CPPCHECK_FOUND)
-#     set(_cppcheck_args)
-#
-#     list(FIND ARGN UNUSED_FUNCTIONS _unused_func)
-#     if("${_unused_func}" GREATER "-1")
-#       list(APPEND _cppcheck_args ${CPPCHECK_UNUSEDFUNC_ARG})
-#     endif()
-#
-#     list(FIND ARGN STYLE _style)
-#     if("${_style}" GREATER "-1")
-#       list(APPEND _cppcheck_args ${CPPCHECK_STYLE_ARG})
-#     endif()
-#
-#     list(FIND ARGN POSSIBLE_ERROR _poss_err)
-#     if("${_poss_err}" GREATER "-1")
-#       list(APPEND _cppcheck_args ${CPPCHECK_POSSIBLEERROR_ARG})
-#     endif()
-#
-#     list(FIND _input FAIL_ON_WARNINGS _fail_on_warn)
-#     if("${_fail_on_warn}" GREATER "-1")
-#       list(APPEND
-#         CPPCHECK_FAIL_REGULAR_EXPRESSION
-#         ${CPPCHECK_WARN_REGULAR_EXPRESSION})
-#       list(REMOVE_AT _input ${_unused_func})
-#     endif()
-#
-#     get_target_property(_cppcheck_sources "${_name}" SOURCES)
-#     set(_files)
-#     foreach(_source ${_cppcheck_sources})
-#       get_source_file_property(_cppcheck_lang "${_source}" LANGUAGE)
-#       get_source_file_property(_cppcheck_loc "${_source}" LOCATION)
-#       if("${_cppcheck_lang}" MATCHES "CXX")
-#         list(APPEND _files "${_cppcheck_loc}")
-#       endif()
-#     endforeach()
-#
-#     # let's take of include dirs here
-#     get_property( mytargINCLUDES DIRECTORY
-#       "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY INCLUDE_DIRECTORIES)
-#
-#     set( _cppcheck_include )
-#     foreach( _includeDirs ${mytargINCLUDES} )
-#       set( _cppcheck_include "${_cppcheck_include} -I ${_includeDirs}" )
-#     endforeach()
-#
-#     # --------------------------------------------------------------
-#     # let's take of compile definitions here
-#     get_property(mytargDEFINITIONS DIRECTORY
-#       "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY COMPILE_DEFINITIONS )
-#
-#     message("compile definitions= ${mytargDEFINITIONS}")
-#
-#     set( _cppcheck_def )
-#     foreach( _compiledef ${mytargDEFINITIONS} )
-#       set( _cppcheck_def ${_cppcheck_def} -D${_compiledef} )
-#     endforeach()
-#
-#     message( "_cppcheck_def ${_cppcheck_def}" )
-#
-#     # --------------------------------------------------------------
-#     set( _cppcheck_compile_args --check-config ${_cppcheck_include} ${_cppcheck_def} )
-#
-#     if("${CMAKE_VERSION}" VERSION_LESS "2.8.0")
-#       # Older than CMake 2.8.0
-#       add_test(${_name}_cppcheck_test
-#         "${CPPCHECK_EXECUTABLE}"
-#         ${CPPCHECK_TEMPLATE_ARG}
-#         ${_cppcheck_args}
-#         ${_cppcheck_compile_args}
-#         ${_files})
-#     else()
-#       # CMake 2.8.0 and newer
-#       add_test(NAME
-#         ${_name}_cppcheck_test
-#         COMMAND
-#         "${CPPCHECK_EXECUTABLE}"
-#         ${CPPCHECK_TEMPLATE_ARG}
-#         ${_cppcheck_args}
-#         ${_cppcheck_compile_args}
-#         ${_files})
-#     endif()
-#
-#     set_tests_properties(${_name}_cppcheck_test
-#       PROPERTIES
-#       FAIL_REGULAR_EXPRESSION
-#       "${CPPCHECK_FAIL_REGULAR_EXPRESSION}")
-#
-#     add_custom_command(TARGET
-#       all_cppcheck
-#       PRE_BUILD
-#       COMMAND
-#       ${CPPCHECK_EXECUTABLE}
-#       ${CPPCHECK_QUIET_ARG}
-#       ${CPPCHECK_TEMPLATE_ARG}
-#       ${_cppcheck_args}
-#       ${_files}
-#       WORKING_DIRECTORY
-#       "${CMAKE_CURRENT_SOURCE_DIR}"
-#       COMMENT
-#       "${_name}_cppcheck: Running cppcheck on target ${_name}..."
-#       VERBATIM)
-#   endif()
-#
-# endfunction()
+function(add_cppcheck _name)
+  if(NOT TARGET ${_name})
+    message(FATAL_ERROR
+      "add_cppcheck given a target name that does not exist: '${_name}' !")
+  endif()
+  if(CPPCHECK_FOUND)
+    set(_cppcheck_args --force --verbose)
+
+    list(FIND ARGN UNUSED_FUNCTIONS _unused_func)
+    if("${_unused_func}" GREATER "-1")
+      list(APPEND _cppcheck_args ${CPPCHECK_UNUSEDFUNC_ARG})
+    endif()
+
+    list(FIND ARGN STYLE _style)
+    if("${_style}" GREATER "-1")
+      list(APPEND _cppcheck_args ${CPPCHECK_STYLE_ARG})
+    endif()
+
+    list(FIND ARGN POSSIBLE_ERROR _poss_err)
+    if("${_poss_err}" GREATER "-1")
+      list(APPEND _cppcheck_args ${CPPCHECK_POSSIBLEERROR_ARG})
+    endif()
+
+    list(FIND _input FAIL_ON_WARNINGS _fail_on_warn)
+    if("${_fail_on_warn}" GREATER "-1")
+      list(APPEND
+        CPPCHECK_FAIL_REGULAR_EXPRESSION
+        ${CPPCHECK_WARN_REGULAR_EXPRESSION})
+      list(REMOVE_AT _input ${_unused_func})
+    endif()
+
+    get_target_property(_cppcheck_sources "${_name}" SOURCES)
+    set(_files)
+    foreach(_source ${_cppcheck_sources})
+      get_source_file_property(_cppcheck_lang "${_source}" LANGUAGE)
+      get_source_file_property(_cppcheck_loc "${_source}" LOCATION)
+      if("${_cppcheck_lang}" MATCHES "CXX")
+        list(APPEND _files "${_cppcheck_loc}")
+      endif()
+    endforeach()
+
+    # let's take of include dirs here
+    get_property( mytargINCLUDES DIRECTORY
+      "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY INCLUDE_DIRECTORIES)
+
+    set( _cppcheck_include )
+    foreach( _includeDirs ${mytargINCLUDES} )
+      set( _cppcheck_include "${_cppcheck_include} -I ${_includeDirs}" )
+    endforeach()
+
+    # --------------------------------------------------------------
+    # let's take of compile definitions here
+    get_property(mytargDEFINITIONS DIRECTORY
+      "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY COMPILE_DEFINITIONS )
+
+    set( _cppcheck_def )
+    foreach( _compiledef ${mytargDEFINITIONS} )
+      set( _cppcheck_def ${_cppcheck_def} -D${_compiledef} )
+    endforeach()
+
+    # --------------------------------------------------------------
+    set( _cppcheck_compile_args --check-config ${_cppcheck_include} ${_cppcheck_def} )
+
+    if("${CMAKE_VERSION}" VERSION_LESS "2.8.0")
+       # Older than CMake 2.8.0
+      add_test(${_name}_cppcheck_test
+         "${CPPCHECK_EXECUTABLE}"
+         ${CPPCHECK_TEMPLATE_ARG}
+         ${_cppcheck_args}
+         ${_cppcheck_compile_args}
+         ${_files})
+      else()
+        # CMake 2.8.0 and newer
+        add_test(
+          NAME
+            ${_name}_cppcheck_test
+          COMMAND
+            "${CPPCHECK_EXECUTABLE}"
+            ${CPPCHECK_TEMPLATE_ARG}
+            ${_cppcheck_args}
+            ${_cppcheck_compile_args}
+            ${_files})
+      endif()
+
+      set_tests_properties(${_name}_cppcheck_test
+        PROPERTIES
+        FAIL_REGULAR_EXPRESSION
+        "${CPPCHECK_FAIL_REGULAR_EXPRESSION}")
+
+      add_custom_command(TARGET
+        all_cppcheck
+        PRE_BUILD
+        COMMAND
+          ${CPPCHECK_EXECUTABLE}
+          ${CPPCHECK_QUIET_ARG}
+          ${CPPCHECK_TEMPLATE_ARG}
+          ${_cppcheck_args}
+          ${_files}
+        WORKING_DIRECTORY
+          "${CMAKE_CURRENT_SOURCE_DIR}"
+        COMMENT
+          "${_name}_cppcheck: Running cppcheck on target ${_name}..."
+       V ERBATIM)
+   endif()
+
+endfunction()
