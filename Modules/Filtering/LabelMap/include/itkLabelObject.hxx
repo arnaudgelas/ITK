@@ -85,7 +85,7 @@ LabelObject< TLabel, VImageDimension >
 ::ComputeBaseIndex( const IndexType & idx ) const
 {
   BaseIndexType bidx;
-  for( int i=1; i<ImageDimension; i++ )
+  for( unsigned int i=1; i<ImageDimension; i++ )
     {
     bidx[i-1] = idx[i];
     }
@@ -110,7 +110,11 @@ LabelObject< TLabel, VImageDimension >
     }
   SimpleLineType ref( idx[0], 1 );
   const SimpleLineContainerType & lineContainer = it->second;
-  SimpleLineContainerType::const_iterator it2 = std::lower_bound( lineContainer.begin(), lineContainer.end(), ref );
+  SimpleLineContainerType::const_iterator it2 =
+      std::lower_bound( lineContainer.begin(), lineContainer.end(), ref );
+
+  /// TODO: are you sure this is the right condition?
+  /// what happens if idx is the index of the first element of the lineContainer ??
   if( it2 == lineContainer.begin() )
     {
     // not even in the first line
@@ -138,7 +142,8 @@ LabelObject< TLabel, VImageDimension >
 
   SimpleLineType ref( idx[0], 1 );
   SimpleLineContainerType & lineContainer = mit->second;
-  SimpleLineContainerType::iterator it = std::lower_bound( lineContainer.begin(), lineContainer.end(), ref );
+  SimpleLineContainerType::iterator it =
+      std::lower_bound( lineContainer.begin(), lineContainer.end(), ref );
   if( it == lineContainer.begin() )
     {
     // not in this object
@@ -211,11 +216,28 @@ void
 LabelObject< TLabel, VImageDimension >
 ::AddLine(const BaseIndexType & bidx, const SimpleLineType & l)
 {
-  SimpleLineContainerType & ls = m_LineContainer[ bidx ];
-  SimpleLineContainerType::iterator it = std::lower_bound( ls.begin(), ls.end(), l );
-  // TODO: merge the line in the others if there is an overlap
-  ls.insert( it, l );
-  m_NumberOfLines++;
+  typename LineContainerType::iterator lIt = m_LineContainer.find( bidx );
+
+  // if there's no simple line for bidx
+  if( lIt ==  m_LineContainer.end() )
+    {
+    // we can directly add it
+    m_LineContainer[ bidx ].push_back( l );
+    m_NumberOfLines++;
+    }
+  else
+    {
+    SimpleLineContainerType & ls = lIt->second;
+    SimpleLineContainerType::iterator it = std::lower_bound( ls.begin(), ls.end(), l );
+    // TODO: merge the line in the others if there is an overlap
+//    if( !it->Merge( l ) )
+//      {
+//      ls.insert( it, l );
+//      m_NumberOfLines++;
+//      }
+    ls.insert( it, l );
+    m_NumberOfLines++;
+    }
 }
 
 /**
@@ -254,13 +276,12 @@ typename LabelObject< TLabel, VImageDimension >::LineType
 LabelObject< TLabel, VImageDimension >::GetLine(SizeValueType i) const
 {
   SizeValueType count = 0;
-  for( ConstLineIterator it(this); ! it.IsAtEnd(); ++it )
+  for( ConstLineIterator it(this); ! it.IsAtEnd(); ++it, count++ )
     {
     if( i == count )
       {
       return it.GetLine();
       }
-    count++;
     }
   itkGenericExceptionMacro(<<"Index out of bound");
 }
@@ -269,7 +290,7 @@ template< class TLabel, unsigned int VImageDimension >
 typename LabelObject< TLabel, VImageDimension >::SizeValueType
 LabelObject< TLabel, VImageDimension >::Size() const
 {
-  int size = 0;
+  SizeValueType size = 0;
 
   for( typename LineContainerType::const_iterator mit = m_LineContainer.begin();
        mit != m_LineContainer.end();
@@ -316,7 +337,7 @@ LabelObject< TLabel, VImageDimension >::GetIndex(SizeValueType offset) const
         {
         IndexType idx;
         idx[0] = it->GetPosition() + o;
-        for( int i=1; i<ImageDimension; i++)
+        for( unsigned int i=1; i<ImageDimension; i++)
           {
           idx[i] = mit->first[i-1];
           }
@@ -363,7 +384,7 @@ LabelObject< TLabel, VImageDimension >::Optimize()
     if ( mit->second.empty() )
       {
       typename LineContainerType::iterator toRemove = mit;
-      mit++;
+      ++mit;
       m_LineContainer.erase( toRemove );
       }
     else
@@ -406,14 +427,14 @@ LabelObject< TLabel, VImageDimension >::Optimize()
           currentLength = length;
           }
 
-        it++;
+        ++it;
         }
 
       // complete the last line
       SimpleLabelObjectLine l(currentPos, currentLength);
       mit->second.push_back( l );
       }
-    mit++;
+    ++mit;
     }
 }
 
@@ -423,7 +444,7 @@ LabelObject< TLabel, VImageDimension >
 ::Shift( OffsetType offset )
 {
   bool offsetOn0Only = true;
-  for( int i=1; i<ImageDimension; i++ )
+  for( unsigned int i=1; i<ImageDimension; i++ )
     {
     if( offset[i] != 0 )
       {
@@ -440,11 +461,11 @@ LabelObject< TLabel, VImageDimension >
     // we can simply iterate over all the lines and shift the line position
     for( typename LineContainerType::iterator mit = m_LineContainer.begin();
          mit != m_LineContainer.end();
-         mit++ )
+         ++mit )
       {
       for( typename SimpleLineContainerType::iterator it = mit->second.begin();
            it != mit->second.end();
-           it++ )
+           ++it )
         {
         SimpleLineType & line = *it;
         line.SetPosition( line.GetPosition() + offset[0] );
@@ -458,11 +479,11 @@ LabelObject< TLabel, VImageDimension >
     m_LineContainer.clear();
     for( typename LineContainerType::iterator mit = lineContainer.begin();
          mit != lineContainer.end();
-         mit++ )
+         ++mit )
       {
       BaseIndexType bidx = mit->first;
       // shift the base index
-      for( int i=0; i<ImageDimension-1; i++ )
+      for( unsigned int i=0; i<ImageDimension-1; i++ )
         {
         bidx[0] += offset[i+1];
         }
@@ -471,7 +492,7 @@ LabelObject< TLabel, VImageDimension >
       // and copy the shifted lines there
       for( typename SimpleLineContainerType::iterator it = mit->second.begin();
            it != mit->second.end();
-           it++ )
+           ++it )
         {
         SimpleLineType & line = *it;
         line.SetPosition( line.GetPosition() + offset[0] );

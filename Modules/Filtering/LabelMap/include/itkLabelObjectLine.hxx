@@ -23,11 +23,24 @@
 namespace itk
 {
 template< unsigned int VImageDimension >
-LabelObjectLine< VImageDimension >::LabelObjectLine(const IndexType & idx, const LengthType & length)
+LabelObjectLine< VImageDimension >
+::LabelObjectLine() : m_Length( NumericTraits< LengthType >::Zero )
 {
-  this->SetIndex(idx);
-  this->SetLength(length);
+  m_Index.Fill( NumericTraits< typename IndexType::IndexValueType >::Zero );
 }
+
+template< unsigned int VImageDimension >
+LabelObjectLine< VImageDimension >
+::LabelObjectLine(const IndexType & idx, const LengthType & length)
+  : m_Index( idx ), m_Length( length )
+{}
+
+template< unsigned int VImageDimension >
+LabelObjectLine< VImageDimension >
+::LabelObjectLine(const Self & iLine)
+  : m_Index( iLine.m_Index ), m_Length( iLine.m_Length )
+{}
+
 
 template< unsigned int VImageDimension >
 void LabelObjectLine< VImageDimension >::SetIndex(const IndexType & idx)

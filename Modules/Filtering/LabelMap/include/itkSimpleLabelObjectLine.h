@@ -19,6 +19,9 @@
 #define __itkSimpleLabelObjectLine_h
 
 #include "itkIndent.h"
+#include "itkIntTypes.h"
+#include "itkNumericTraits.h"
+#include "vnl/vnl_math.h"
 
 namespace itk
 {
@@ -40,16 +43,22 @@ namespace itk
 class SimpleLabelObjectLine
 {
 public:
-  typedef OffsetValueType          PositionType;
-  typedef itk::SizeValueType       LengthType;
+  typedef SimpleLabelObjectLine     Self;
+  typedef OffsetValueType           PositionType;
+  typedef itk::SizeValueType        LengthType;
 
-  SimpleLabelObjectLine() {}
-  virtual ~SimpleLabelObjectLine() {}
-  SimpleLabelObjectLine(const PositionType & pos, const LengthType & length)
-  {
-    m_Position = pos;
-    m_Length = length;
-  }
+  SimpleLabelObjectLine() : m_Position( NumericTraits< OffsetValueType >::Zero ),
+    m_Length( NumericTraits< LengthType >::Zero ){}
+
+  ~SimpleLabelObjectLine() {}
+
+  SimpleLabelObjectLine(const PositionType & pos,
+                        const LengthType & length) : m_Position( pos ), m_Length( length )
+  {}
+
+  SimpleLabelObjectLine( const Self& iLine ) : m_Position( iLine.m_Position ),
+  m_Length( iLine.m_Length )
+  {}
 
   void SetPosition(const PositionType & pos)
   {
@@ -74,12 +83,13 @@ public:
 
   bool HasPosition( const PositionType & pos ) const
   {
-    return m_Position <= pos && pos < (PositionType)(m_Position + m_Length);
+    return ( m_Position <= pos ) &&
+        ( pos < static_cast< PositionType >(m_Position + m_Length) );
   }
 
   bool IsNextPosition( const PositionType & pos ) const
   {
-    return pos == m_Position + (OffsetValueType)m_Length;
+    return pos == m_Position + static_cast< OffsetValueType >( m_Length );
   }
 
   bool IsPreviousPosition( const PositionType & pos ) const
@@ -97,7 +107,7 @@ public:
     m_Length = pos + 1 - m_Position;
   }
 
-  bool Merge( const SimpleLabelObjectLine & line )
+  bool Merge( const Self & line )
   {
     if( line < *this )
       {
@@ -106,28 +116,28 @@ public:
     return MergeNext( line );
   }
 
-  bool MergePrevious( const SimpleLabelObjectLine & line )
+  bool MergePrevious( const Self & line )
   {
     if( line.GetLastPosition() + 1 < m_Position )
       {
       // can't merge
       return false;
       }
-    PositionType pos = std::min( m_Position, line.m_Position );
-    PositionType lastPosition = std::max( this->GetLastPosition(), line.GetLastPosition() );
+    PositionType pos = vnl_math_min( m_Position, line.m_Position );
+    PositionType lastPosition = vnl_math_max( m_Position, line.GetLastPosition() );
     m_Position = pos;
     this->SetLastPosition( lastPosition );
     return true;
   }
 
-  bool MergeNext( const SimpleLabelObjectLine & line )
+  bool MergeNext( const Self & line )
   {
     if( this->GetLastPosition() + 1 < line.m_Position )
       {
       // can't merge
       return false;
       }
-    this->SetLastPosition( std::max( this->GetLastPosition(), line.GetLastPosition() ) );
+    this->SetLastPosition( vnl_math_max( m_Position, line.GetLastPosition() ) );
     return true;
   }
 
@@ -152,8 +162,9 @@ public:
     return m_Length < line.m_Length;
   }
 
+private:
   PositionType  m_Position;
-  LengthType m_Length;
+  LengthType    m_Length;
 };
 } // end namespace itk
 

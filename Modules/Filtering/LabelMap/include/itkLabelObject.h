@@ -179,9 +179,9 @@ public:
   {
   public:
 
-    ConstLineIterator() {}
+    ConstLineIterator() : m_Line() {}
 
-    ConstLineIterator(const Self *lo)
+    ConstLineIterator(const Self *lo) : m_Line()
     {
       m_Begin = lo->m_LineContainer.begin();
       m_End = lo->m_LineContainer.end();
@@ -190,13 +190,13 @@ public:
       NextValidMapEntry();
     }
 
-    ConstLineIterator(const ConstLineIterator & iter)
+    ConstLineIterator(const ConstLineIterator & iter) :
+      m_MapIterator( iter.m_MapIterator ),
+      m_Begin( iter.m_Begin ),
+      m_End( iter.m_End ),
+      m_DequeIterator( iter.m_DequeIterator ),
+      m_Line( iter.m_Line )
     {
-      m_MapIterator = iter.m_MapIterator;
-      m_DequeIterator = iter.m_DequeIterator;
-      m_Line = iter.m_Line;
-      m_Begin = iter.m_Begin;
-      m_End = iter.m_End;
     }
 
     ConstLineIterator & operator=(const ConstLineIterator & iter)
@@ -241,7 +241,10 @@ public:
 
     bool operator==(const ConstLineIterator & iter) const
     {
-      return m_MapIterator == iter.m_MapIterator && m_DequeIterator = iter.m_DequeIterator && m_Begin == iter.m_Begin && m_End == iter.m_End;
+      return ( m_MapIterator == iter.m_MapIterator ) &&
+             ( m_DequeIterator = iter.m_DequeIterator ) &&
+             ( m_Begin == iter.m_Begin ) &&
+             ( m_End == iter.m_End );
     }
 
     bool operator!=(const ConstLineIterator & iter) const
@@ -265,7 +268,8 @@ public:
     typedef SimpleLabelObjectLine              SimpleLineType;
     typedef typename std::deque< SimpleLineType >
                                                SimpleLineContainerType;
-    typedef typename std::map< BaseIndexType, SimpleLineContainerType, typename BaseIndexType::LexicographicCompare >
+    typedef typename std::map< BaseIndexType, SimpleLineContainerType,
+      typename BaseIndexType::LexicographicCompare >
                                                LineContainerType;
 
     void NextValidMapEntry()
@@ -273,7 +277,7 @@ public:
       // search for the next valid position
       while( m_MapIterator != m_End && ! NextValidDequeEntry() )
         {
-        m_MapIterator++;
+        ++m_MapIterator;
         }
     }
 
@@ -287,9 +291,9 @@ public:
       m_DequeIterator = m_MapIterator->second.begin();
       // copy the position from the base index
       IndexType idx;
-      for( int i=1; i<ImageDimension; i++ )
+      for( unsigned int i=1; i < ImageDimension; i++ )
         {
-        idx[i] = m_MapIterator->first[i-1];
+        idx[i] = ( m_MapIterator->first )[i-1];
         }
       // and the position of the line
       idx[0] = m_DequeIterator->GetPosition();
@@ -319,17 +323,14 @@ public:
         m_Index.Fill(0);
         }
 
-    ConstIndexIterator(const Self *lo)
+    ConstIndexIterator(const Self *lo) : m_Iterator( lo )
     {
-      m_Iterator = ConstLineIterator(lo);
       GoToBegin();
     }
 
-    ConstIndexIterator(const ConstIndexIterator & iter)
-    {
-      m_Iterator = iter.m_Iterator;
-      m_Index = iter.m_Index;
-    }
+    ConstIndexIterator(const ConstIndexIterator & iter) : m_Iterator( iter.m_Iterator ),
+      m_Index( iter.m_Index )
+    {}
 
     ConstIndexIterator & operator=(const ConstIndexIterator & iter)
     {
@@ -346,7 +347,9 @@ public:
     ConstIndexIterator & operator++()
     {
       m_Index[0]++;
-      if( m_Index[0] >= m_Iterator.GetLine().GetIndex()[0] + (OffsetValueType)m_Iterator.GetLine().GetLength() )
+      LineType line = m_Iterator.GetLine();
+
+      if( m_Index[0] >= line.GetIndex()[0] + static_cast< OffsetValueType >( line.GetLength() ) )
         {
         // we've reached the end of the line - go to the next one
         ++m_Iterator;
