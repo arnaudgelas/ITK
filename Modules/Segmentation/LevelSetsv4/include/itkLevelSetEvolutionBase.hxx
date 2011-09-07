@@ -30,7 +30,7 @@ LevelSetEvolutionBase< TEquationContainer >
 {
   this->m_Alpha = 0.9;
   this->m_Dt = 1.;
-  this->m_RMSChangeAccumulator = -1.;
+  this->m_RMSChangeAccumulator = 0.;
   this->m_UserGloballyDefinedTimeStep = false;
 }
 
@@ -44,7 +44,7 @@ void
 LevelSetEvolutionBase< TEquationContainer >::Update()
 {
   //Run iteration
-  this->GenerateData();
+  this->RunOneIteration();
 }
 
 template< class TEquationContainer >
@@ -77,10 +77,8 @@ LevelSetEvolutionBase< TEquationContainer >
 template< class TEquationContainer >
 void
 LevelSetEvolutionBase< TEquationContainer >
-::GenerateData()
+::RunOneIteration()
 {
-  this->m_DomainMapFilter = this->m_LevelSetContainer->GetDomainMapFilter();
-
   TermContainerPointer termContainer = this->m_EquationContainer->GetEquation( 0 );
 
   TermPointer term = termContainer->GetTerm( 0 );
@@ -129,8 +127,10 @@ LevelSetEvolutionBase< TEquationContainer >
   // Get the image to be segmented
   InputImageConstPointer inputImage = this->m_EquationContainer->GetInput();
 
-  DomainIteratorType map_it = this->m_DomainMapFilter->m_LevelSetMap.begin();
-  DomainIteratorType map_end = this->m_DomainMapFilter->m_LevelSetMap.end();
+  DomainMapImageFilterPointer domainMapFilter = this->m_LevelSetContainer->GetDomainMapFilter();
+
+  DomainIteratorType map_it   = domainMapFilter->m_LevelSetMap.begin();
+  DomainIteratorType map_end  = domainMapFilter->m_LevelSetMap.end();
 
   // Initialize parameters here
   this->m_EquationContainer->InitializeParameters();
@@ -168,8 +168,10 @@ LevelSetEvolutionBase< TEquationContainer >
 {
   InputImageConstPointer inputImage = this->m_EquationContainer->GetInput();
 
-  DomainIteratorType map_it = this->m_DomainMapFilter->m_LevelSetMap.begin();
-  DomainIteratorType map_end = this->m_DomainMapFilter->m_LevelSetMap.end();
+  DomainMapImageFilterPointer domainMapFilter = this->m_LevelSetContainer->GetDomainMapFilter();
+
+  DomainIteratorType map_it   = domainMapFilter->m_LevelSetMap.begin();
+  DomainIteratorType map_end  = domainMapFilter->m_LevelSetMap.end();
 
   while( map_it != map_end )
     {
@@ -253,8 +255,11 @@ LevelSetEvolutionBase< TEquationContainer >
 
   while( it1 != this->m_LevelSetContainer->End() )
     {
-    LevelSetImagePointer image1 = it1->GetLevelSet()->GetImage();
-    LevelSetImagePointer image2 = it2->GetLevelSet()->GetImage();
+    LevelSetPointer ls1 = it1->GetLevelSet();
+    LevelSetPointer ls2 = it2->GetLevelSet();
+
+    LevelSetImagePointer image1 = ls1->GetImage();
+    LevelSetImagePointer image2 = ls2->GetImage();
 
     LevelSetImageIteratorType imIt1( image1, image1->GetBufferedRegion() );
     LevelSetImageIteratorType imIt2( image2, image2->GetBufferedRegion() );
@@ -309,18 +314,11 @@ LevelSetEvolutionBase< TEquationContainer >
     maurer->SetSquaredDistance( false );
     maurer->SetUseImageSpacing( true );
     maurer->SetInsideIsPositive( false );
+
+    maurer->GraftOutput( image );
+
     maurer->Update();
 
-    LevelSetImageIteratorType imIt1( image, image->GetBufferedRegion() );
-    LevelSetImageIteratorType imIt2( maurer->GetOutput(), image->GetBufferedRegion() );
-    imIt1.GoToBegin();
-    imIt2.GoToBegin();
-    while( !imIt1.IsAtEnd() )
-      {
-      imIt1.Set( imIt2.Get() );
-      ++imIt1;
-      ++imIt2;
-      }
     ++it;
     }
 }

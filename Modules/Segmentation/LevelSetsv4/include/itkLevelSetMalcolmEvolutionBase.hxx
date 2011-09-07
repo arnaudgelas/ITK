@@ -30,7 +30,7 @@ LevelSetMalcolmEvolutionBase< TEquationContainer >
 {
   this->m_Alpha = 0.9;
   this->m_Dt = 1.;
-  this->m_RMSChangeAccumulator = -1.;
+  this->m_RMSChangeAccumulator = 0.;
   this->m_UserGloballyDefinedTimeStep = true;
 }
 
@@ -74,8 +74,6 @@ void LevelSetMalcolmEvolutionBase< TEquationContainer >
     itkGenericExceptionMacro( << "m_EquationContainer->GetEquation( 0 ) is NULL" );
     }
 
-  this->m_DomainMapFilter = this->m_LevelSetContainer->GetDomainMapFilter();
-
   // Get the image to be segmented
   InputImageConstPointer inputImage = this->m_EquationContainer->GetInput();
 
@@ -101,16 +99,16 @@ void LevelSetMalcolmEvolutionBase< TEquationContainer >
     }
 
   //Run iteration
-  this->GenerateData();
+  this->RunOneIteration();
 }
 
 template< class TEquationContainer >
 void LevelSetMalcolmEvolutionBase< TEquationContainer >
-::GenerateData()
+::RunOneIteration()
 {
-  AllocateUpdateBuffer();
+  this->AllocateUpdateBuffer();
 
-  InitializeIteration();
+  this->InitializeIteration();
 
   typename StoppingCriterionType::IterationIdType iter = 0;
   this->m_StoppingCriterion->SetCurrentIteration( iter );
@@ -122,12 +120,12 @@ void LevelSetMalcolmEvolutionBase< TEquationContainer >
 
     // one iteration over all container
     // update each level set based on the different equations provided
-    ComputeIteration();
+    this->ComputeIteration();
 
-    ComputeTimeStepForNextIteration();
+    this->ComputeTimeStepForNextIteration();
 
-    UpdateLevelSets();
-    UpdateEquations();
+    this->UpdateLevelSets();
+    this->UpdateEquations();
 
     ++iter;
 
@@ -144,8 +142,10 @@ void LevelSetMalcolmEvolutionBase< TEquationContainer >
   // Get the image to be segmented
   InputImageConstPointer inputImage = this->m_EquationContainer->GetInput();
 
-  DomainIteratorType map_it = this->m_DomainMapFilter->m_LevelSetMap.begin();
-  DomainIteratorType map_end = this->m_DomainMapFilter->m_LevelSetMap.end();
+  DomainMapImageFilterPointer domainMapFilter = this->m_LevelSetContainer->GetDomainMapFilter();
+
+  DomainIteratorType map_it   = domainMapFilter->m_LevelSetMap.begin();
+  DomainIteratorType map_end  = domainMapFilter->m_LevelSetMap.end();
 
   // Initialize parameters here
   this->m_EquationContainer->InitializeParameters();
@@ -166,7 +166,8 @@ void LevelSetMalcolmEvolutionBase< TEquationContainer >
 
       for( IdListIterator lIt = lout.begin(); lIt != lout.end(); ++lIt )
         {
-        this->m_EquationContainer->GetEquation( *lIt - 1 )->Initialize( it.GetIndex() );
+        TermContainerPointer termContainer = this->m_EquationContainer->GetEquation( *lIt - 1 );
+        termContainer->Initialize( it.GetIndex() );
         }
       ++it;
       }

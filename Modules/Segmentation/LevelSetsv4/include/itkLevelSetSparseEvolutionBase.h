@@ -20,21 +20,20 @@
 #ifndef __itkLevelSetSparseEvolutionBase_h
 #define __itkLevelSetSparseEvolutionBase_h
 
+#include "itkObject.h"
 #include "itkImage.h"
 #include "itkLevelSetImageBase.h"
 #include "itkImageRegionIteratorWithIndex.h"
 #include "itkLevelSetDomainMapImageFilter.h"
 #include "itkUpdateWhitakerSparseLevelSet.h"
 #include "itkLevelSetEvolutionStoppingCriterionBase.h"
-#include <list>
-#include "itkObject.h"
-#include "itkImageFileWriter.h"
+#include "itkLabelMapToLabelImageFilter.h"
 
+#include <list>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <sstream>
-#include "itkLabelMapToLabelImageFilter.h"
 
 namespace itk
 {
@@ -139,22 +138,18 @@ public:
   itkGetObjectMacro( StoppingCriterion, StoppingCriterionType );
   itkSetObjectMacro( StoppingCriterion, StoppingCriterionType );
 
-  /** Set/Get the domain map image filter */
-  itkSetObjectMacro( DomainMapFilter, DomainMapImageFilterType );
-  itkGetObjectMacro( DomainMapFilter, DomainMapImageFilterType );
 
 protected:
   LevelSetSparseEvolutionBase();
   ~LevelSetSparseEvolutionBase();
 
-  StoppingCriterionPointer    m_StoppingCriterion;
-
   EquationContainerPointer    m_EquationContainer;
   LevelSetContainerPointer    m_LevelSetContainer;
 
+  typedef std::pair< LevelSetInputType, LevelSetOutputType > NodePairType;
+
   // For sparse case, the update buffer needs to be the size of the active layer
   std::map< IdentifierType, LevelSetLayerType* >  m_UpdateBuffer;
-  DomainMapImageFilterPointer                     m_DomainMapFilter;
 
   LevelSetOutputRealType      m_Alpha;
   LevelSetOutputRealType      m_Dt;
@@ -167,7 +162,7 @@ protected:
 
   /** Run the iterative loops of calculating levelset function updates until
    *  the stopping criterion is satisfied */
-  void GenerateData();
+  void RunOneIteration();
 
   /** Initialize the iteration by computing parameters in the terms of the level set equation */
   void InitializeIteration();
@@ -185,8 +180,10 @@ protected:
   void UpdateEquations();
 
 private:
-  LevelSetSparseEvolutionBase( const Self& );
-  void operator = ( const Self& );
+  LevelSetSparseEvolutionBase( const Self& ); // purposely not implemented
+  void operator = ( const Self& );  // purposely not implemented
+
+  StoppingCriterionPointer    m_StoppingCriterion;
 };
 }
 #ifndef ITK_MANUAL_INSTANTIATION

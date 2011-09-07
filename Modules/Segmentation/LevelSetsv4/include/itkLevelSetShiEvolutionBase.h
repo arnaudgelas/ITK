@@ -58,11 +58,10 @@ public:
   /** Run-time type information */
   itkTypeMacro( LevelSetShiEvolutionBase, Object );
 
-  typedef TEquationContainer                      EquationContainerType;
-  typedef typename EquationContainerType::Pointer EquationContainerPointer;
-  typedef typename EquationContainerType::TermContainerType
-                                                  TermContainerType;
-  typedef typename TermContainerType::Pointer     TermContainerPointer;
+  typedef TEquationContainer                                  EquationContainerType;
+  typedef typename EquationContainerType::Pointer             EquationContainerPointer;
+  typedef typename EquationContainerType::TermContainerType   TermContainerType;
+  typedef typename TermContainerType::Pointer                 TermContainerPointer;
 
   typedef typename TermContainerType::TermType TermType;
   typedef typename TermType::Pointer           TermPointer;
@@ -138,20 +137,12 @@ public:
   itkGetObjectMacro( StoppingCriterion, StoppingCriterionType );
   itkSetObjectMacro( StoppingCriterion, StoppingCriterionType );
 
-  /** Set/Get the domain map image filter */
-  itkSetObjectMacro( DomainMapFilter, DomainMapImageFilterType );
-  itkGetObjectMacro( DomainMapFilter, DomainMapImageFilterType );
-
 protected:
   LevelSetShiEvolutionBase();
   virtual ~LevelSetShiEvolutionBase();
 
-  StoppingCriterionPointer  m_StoppingCriterion;
-
   EquationContainerPointer    m_EquationContainer;
   LevelSetContainerPointer    m_LevelSetContainer;
-
-  DomainMapImageFilterPointer     m_DomainMapFilter;
 
   LevelSetOutputRealType          m_Alpha;
   LevelSetOutputRealType          m_Dt;
@@ -181,8 +172,10 @@ protected:
   void UpdateEquations();
 
 private:
-  LevelSetShiEvolutionBase( const Self& );
-  void operator = ( const Self& );
+  LevelSetShiEvolutionBase( const Self& ); // purposely not implemented
+  void operator = ( const Self& );  // purposely not implemented
+
+  StoppingCriterionPointer  m_StoppingCriterion;
 };
 }
 

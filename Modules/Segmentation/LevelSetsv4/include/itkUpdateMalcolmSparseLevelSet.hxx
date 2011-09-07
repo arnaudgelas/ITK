@@ -48,7 +48,7 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
     itkGenericExceptionMacro( <<"m_InputLevelSet is NULL" );
     }
 
-  this->m_OutputLevelSet->SetLayer( 0, this->m_InputLevelSet->GetLayer( 0 ) );
+  this->m_OutputLevelSet->SetLayer( LevelSetType::ZeroLayer(), this->m_InputLevelSet->GetLayer( LevelSetType::ZeroLayer() ) );
   this->m_OutputLevelSet->SetLabelMap( this->m_InputLevelSet->GetLabelMap() );
 
   typedef LabelMapToLabelImageFilter<LevelSetLabelMapType, LabelImageType> LabelMapToLabelImageFilterType;
@@ -59,7 +59,7 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
   this->m_InternalImage = labelMapToLabelImageFilter->GetOutput();
   this->m_InternalImage->DisconnectPipeline();
 
-  FillUpdateContainer();
+  this->FillUpdateContainer();
 
   if( this->m_IsUsingUnPhasedPropagation )
     {
@@ -68,7 +68,7 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
     }
   else
     {
-    LevelSetLayerType& list_0 = this->m_OutputLevelSet->GetLayer( 0 );
+    LevelSetLayerType& list_0 = this->m_OutputLevelSet->GetLayer( LevelSetType::ZeroLayer() );
 
     LevelSetLayerType list_pos;
     LevelSetLayerType update_pos;
@@ -83,42 +83,38 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
 
     while( nodeIt != nodeEnd )
       {
-      assert( nodeIt->first == upIt->first );
+      itkAssertInDebugAndIgnoreInReleaseMacro( nodeIt->first == upIt->first );
 
       const LevelSetInputType currentIdx = nodeIt->first;
       const LevelSetOutputType update = upIt->second;
 
       if( update > 0 )
         {
-        list_pos.insert(
-              std::pair< LevelSetInputType, LevelSetOutputType >( currentIdx, 0 ) );
-        update_pos.insert(
-              std::pair< LevelSetInputType, LevelSetOutputType >( currentIdx, 1 ) );
+        list_pos.insert( NodePairType( currentIdx, LevelSetType::ZeroLayer() ) );
+        update_pos.insert( NodePairType( currentIdx, LevelSetType::PlusOneLayer() ) );
         }
       else
         {
-        list_neg.insert(
-              std::pair< LevelSetInputType, LevelSetOutputType >( currentIdx, 0 ) );
-        update_neg.insert(
-              std::pair< LevelSetInputType, LevelSetOutputType >( currentIdx, -1 ) );
+        list_neg.insert( NodePairType( currentIdx, LevelSetType::ZeroLayer() ) );
+        update_neg.insert( NodePairType( currentIdx, LevelSetType::MinusOneLayer() ) );
         }
       ++nodeIt;
       ++upIt;
       }
 
     // contraction
-    EvolveWithPhasedPropagation( list_pos, update_pos, true );
-    CompactLayersToSinglePixelThickness();
+    this->EvolveWithPhasedPropagation( list_pos, update_pos, true );
+    this->CompactLayersToSinglePixelThickness();
 
     // dilation
-    EvolveWithPhasedPropagation( list_neg, update_neg, false );
-    CompactLayersToSinglePixelThickness();
+    this->EvolveWithPhasedPropagation( list_neg, update_neg, false );
+    this->CompactLayersToSinglePixelThickness();
     }
 
   typedef LabelImageToLabelMapFilter< LabelImageType, LevelSetLabelMapType> LabelImageToLabelMapFilterType;
   typename LabelImageToLabelMapFilterType::Pointer labelImageToLabelMapFilter = LabelImageToLabelMapFilterType::New();
   labelImageToLabelMapFilter->SetInput( this->m_InternalImage );
-  labelImageToLabelMapFilter->SetBackgroundValue( 1 );
+  labelImageToLabelMapFilter->SetBackgroundValue( LevelSetType::PlusOneLayer() );
   labelImageToLabelMapFilter->Update();
 
   LevelSetLabelMapPointer outputLabelMap = this->m_OutputLevelSet->GetLabelMap( );
@@ -131,7 +127,7 @@ void
 UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
 ::FillUpdateContainer()
 {
-  LevelSetLayerType level0 = this->m_OutputLevelSet->GetLayer( 0 );
+  LevelSetLayerType level0 = this->m_OutputLevelSet->GetLayer( LevelSetType::ZeroLayer() );
 
   LevelSetLayerIterator nodeIt = level0.begin();
   LevelSetLayerIterator nodeEnd = level0.end();
@@ -155,8 +151,7 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
       value = - NumericTraits< LevelSetOutputType >::One;
       }
 
-    this->m_Update.insert(
-          std::pair< LevelSetInputType, LevelSetOutputType >( currentIndex, value ) );
+    this->m_Update.insert( NodePairType( currentIndex, value ) );
 
     ++nodeIt;
     }
@@ -170,7 +165,7 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
 {
   LevelSetOutputRealType oldValue;
   LevelSetOutputRealType newValue;
-  LevelSetLayerType & level0 = this->m_OutputLevelSet->GetLayer( 0 );
+  LevelSetLayerType & level0 = this->m_OutputLevelSet->GetLayer( LevelSetType::ZeroLayer() );
 
   // neighborhood iterator
   ZeroFluxNeumannBoundaryCondition< LabelImageType > sp_nbc;
@@ -198,7 +193,7 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
 
   TermContainerPointer termContainer = this->m_EquationContainer->GetEquation( this->m_CurrentLevelSetId );
 
-  LevelSetLayerType InsertList;
+  LevelSetLayerType insertList;
 
   LevelSetLayerIterator nodeIt = level0.begin();
   LevelSetLayerIterator nodeEnd = level0.end();
@@ -209,21 +204,21 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
     {
     const LevelSetInputType currentIdx = nodeIt->first;
 
-    assert( currentIdx == upIt->first );
+    itkAssertInDebugAndIgnoreInReleaseMacro( currentIdx == upIt->first );
 
     const LevelSetOutputType update = upIt->second;
 
     if( update != NumericTraits< LevelSetOutputType >::Zero )
       {
-      oldValue = 0;
+      oldValue = LevelSetType::ZeroLayer();
 
       if( update > NumericTraits< LevelSetOutputType >::Zero )
         {
-        newValue = 1;
+        newValue = LevelSetType::PlusOneLayer();
         }
-      else // if( update < NumericTraits< LevelSetOutputRealType >::Zero )
+      else
         {
-        newValue = -1;
+        newValue = LevelSetType::MinusOneLayer();
         }
 
       LevelSetLayerIterator tempIt = nodeIt;
@@ -246,8 +241,7 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
           LevelSetInputType tempIndex =
               neighIt.GetIndex( i.GetNeighborhoodOffset() );
 
-          InsertList.insert(
-                std::pair< LevelSetInputType, LevelSetOutputType >( tempIndex, tempValue ) );
+          insertList.insert( NodePairType( tempIndex, tempValue ) );
           }
         }
       }
@@ -258,15 +252,14 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
       }
     }
 
-  nodeIt = InsertList.begin();
-  nodeEnd = InsertList.end();
+  nodeIt = insertList.begin();
+  nodeEnd = insertList.end();
   while( nodeIt != nodeEnd )
     {
-    level0.insert(
-          std::pair< LevelSetInputType, LevelSetOutputType >( nodeIt->first, 0 ) );
+    level0.insert( NodePairType( nodeIt->first, LevelSetType::ZeroLayer() ) );
 
-    this->m_InternalImage->SetPixel( nodeIt->first, 0 );
-    termContainer->UpdatePixel( nodeIt->first, nodeIt->second, 0 );
+    this->m_InternalImage->SetPixel( nodeIt->first, LevelSetType::ZeroLayer() );
+    termContainer->UpdatePixel( nodeIt->first, nodeIt->second, LevelSetType::ZeroLayer() );
     ++nodeIt;
     }
 }
@@ -279,7 +272,7 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
                         LevelSetLayerType& ioUpdate,
                         const bool& iContraction )
   {
-  assert( ioList.size() == ioUpdate.size() );
+  itkAssertInDebugAndIgnoreInReleaseMacro( ioList.size() == ioUpdate.size() );
 
   ZeroFluxNeumannBoundaryCondition< LabelImageType > sp_nbc;
 
@@ -306,18 +299,20 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
 
   TermContainerPointer termContainer = this->m_EquationContainer->GetEquation( this->m_CurrentLevelSetId );
 
-  LevelSetLayerType InsertList;
+  LevelSetLayerType insertList;
 
   LevelSetLayerIterator nodeIt = ioList.begin();
   LevelSetLayerIterator nodeEnd = ioList.end();
 
   LevelSetLayerIterator upIt = ioUpdate.begin();
 
+  LevelSetLayerType outputLayerZero = this->m_OutputLevelSet->GetLayer( LevelSetType::ZeroLayer() );
+
   while( nodeIt != nodeEnd )
     {
-    assert( nodeIt->first == upIt->first );
+    itkAssertInDebugAndIgnoreInReleaseMacro( nodeIt->first == upIt->first );
 
-    LevelSetOutputType oldValue = 0;
+    LevelSetOutputType oldValue = LevelSetType::ZeroLayer();
     LevelSetOutputType newValue;
 
     LevelSetOutputType update = upIt->second;
@@ -325,17 +320,25 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
 
     if( update != NumericTraits< LevelSetOutputRealType >::Zero )
       {
-      // only allow positive forces
-      iContraction ? newValue = 1 : newValue = -1;
+      // only allow positiveUpdate forces
+      if( iContraction )
+        {
+        newValue = LevelSetType::PlusOneLayer();
+        }
+      else
+        {
+        newValue = LevelSetType::MinusOneLayer();
+        }
+
       LevelSetLayerIterator tempIt = nodeIt;
       ++nodeIt;
       ++upIt;
       ioList.erase( tempIt );
-      this->m_OutputLevelSet->GetLayer( 0 ).erase( currentIdx );
+      outputLayerZero.erase( currentIdx );
 
       this->m_InternalImage->SetPixel( currentIdx, newValue );
-      this->m_EquationContainer->GetEquation( this->m_CurrentLevelSetId )->UpdatePixel(
-        currentIdx, oldValue , newValue );
+
+      termContainer->UpdatePixel( currentIdx, oldValue , newValue );
 
       neighIt.SetLocation( currentIdx );
 
@@ -350,28 +353,26 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
           LevelSetInputType tempIdx =
             neighIt.GetIndex( i.GetNeighborhoodOffset() );
 
-          InsertList.insert(
-            std::pair< LevelSetInputType, LevelSetOutputType >( tempIdx, tempValue ) );
-            }
+          insertList.insert( NodePairType( tempIdx, tempValue ) );
           }
         }
-      else
-        {
-        ++nodeIt;
-        ++upIt;
-        }
       }
+    else
+      {
+      ++nodeIt;
+      ++upIt;
+      }
+    }
 
-  nodeIt = InsertList.begin();
-  nodeEnd = InsertList.end();
+  nodeIt = insertList.begin();
+  nodeEnd = insertList.end();
 
   while( nodeIt != nodeEnd )
     {
-    this->m_OutputLevelSet->GetLayer( 0 ).insert(
-          std::pair< LevelSetInputType, LevelSetOutputType >( nodeIt->first, 0 ) );
+    outputLayerZero.insert( NodePairType( nodeIt->first, LevelSetType::ZeroLayer() ) );
 
-    termContainer->UpdatePixel( nodeIt->first, nodeIt->second, 0 );
-    this->m_InternalImage->SetPixel( nodeIt->first, 0 );
+    termContainer->UpdatePixel( nodeIt->first, nodeIt->second, LevelSetType::ZeroLayer() );
+    this->m_InternalImage->SetPixel( nodeIt->first, LevelSetType::ZeroLayer() );
 
     ++nodeIt;
     }
@@ -384,7 +385,7 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
 ::CompactLayersToSinglePixelThickness()
 {
   LevelSetOutputRealType oldValue, newValue;
-  LevelSetLayerType & list_0 = this->m_OutputLevelSet->GetLayer( 0 );
+  LevelSetLayerType & list_0 = this->m_OutputLevelSet->GetLayer( LevelSetType::ZeroLayer() );
 
   ZeroFluxNeumannBoundaryCondition< LabelImageType > sp_nbc;
 
@@ -420,29 +421,29 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
 
     neighIt.SetLocation( currentIdx );
 
-    bool positive = false;
-    bool negative = false;
+    bool positiveUpdate = false;
+    bool negativeUpdate = false;
 
-    oldValue = 0;
+    oldValue = LevelSetType::ZeroLayer();
 
     for( typename NeighborhoodIteratorType::Iterator
         i = neighIt.Begin();
         !i.IsAtEnd(); ++i )
       {
       LevelSetOutputType tempValue = i.Get();
-      if( tempValue == -1 )
+      if( tempValue == LevelSetType::MinusOneLayer() )
         {
-        negative = true;
+        negativeUpdate = true;
         }
-      if ( tempValue == 1 )
+      if ( tempValue == LevelSetType::PlusOneLayer() )
         {
-        positive = true;
+        positiveUpdate = true;
         }
       }
 
-    if( negative && !positive )
+    if( negativeUpdate && !positiveUpdate )
       {
-      newValue = -1;
+      newValue = LevelSetType::MinusOneLayer();
       LevelSetLayerIterator tempIt = nodeIt;
       ++nodeIt;
       list_0.erase( tempIt );
@@ -450,9 +451,9 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
       this->m_InternalImage->SetPixel( currentIdx, newValue );
       termContainer->UpdatePixel( currentIdx, oldValue , newValue );
       }
-    else if( positive && !negative )
+    else if( positiveUpdate && !negativeUpdate )
       {
-      newValue = 1;
+      newValue = LevelSetType::PlusOneLayer();
       LevelSetLayerIterator tempIt = nodeIt;
       ++nodeIt;
       list_0.erase( tempIt );
@@ -461,7 +462,7 @@ UpdateMalcolmSparseLevelSet< VDimension, TEquationContainer >
 
       termContainer->UpdatePixel( currentIdx, oldValue , newValue );
       }
-    else if( !positive && !negative )
+    else if( !positiveUpdate && !negativeUpdate )
       {
       ++nodeIt;
       }

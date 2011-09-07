@@ -102,10 +102,10 @@ int itkSingleLevelSetShi2DTest( int argc, char* argv[] )
   InputIteratorType iIt( binary, region );
   iIt.GoToBegin();
   while( !iIt.IsAtEnd() )
-  {
+    {
     iIt.Set( itk::NumericTraits<InputPixelType>::One );
     ++iIt;
-  }
+    }
 
   // Convert binary mask to sparse level set
   BinaryToSparseAdaptorType::Pointer adaptor = BinaryToSparseAdaptorType::New();
@@ -191,7 +191,6 @@ int itkSingleLevelSetShi2DTest( int argc, char* argv[] )
   evolution->SetEquationContainer( equationContainer );
   evolution->SetStoppingCriterion( criterion );
   evolution->SetLevelSetContainer( lscontainer );
-  evolution->SetDomainMapFilter( domainMapFilter );
 
   try
     {

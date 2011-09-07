@@ -102,10 +102,10 @@ int itkTwoLevelSetMalcolm2DTest( int argc, char* argv[] )
   InputIteratorType iIt( binary, region );
   iIt.GoToBegin();
   while( !iIt.IsAtEnd() )
-  {
+    {
     iIt.Set( itk::NumericTraits<InputPixelType>::One );
     ++iIt;
-  }
+    }
 
   // Convert binary mask to sparse level set
   BinaryToSparseAdaptorType::Pointer adaptor0 = BinaryToSparseAdaptorType::New();
@@ -148,15 +148,15 @@ int itkTwoLevelSetMalcolm2DTest( int argc, char* argv[] )
 
   bool LevelSetNotYetAdded = lscontainer->AddLevelSet( 0, level_set0, false );
   if ( !LevelSetNotYetAdded )
-  {
+    {
     return EXIT_FAILURE;
-  }
+    }
 
   LevelSetNotYetAdded = lscontainer->AddLevelSet( 1, level_set1, false );
   if ( !LevelSetNotYetAdded )
-  {
+    {
     return EXIT_FAILURE;
-  }
+    }
   std::cout << "Level set container created" << std::endl;
 
   // **************** CREATE ALL TERMS ****************
@@ -236,7 +236,6 @@ int itkTwoLevelSetMalcolm2DTest( int argc, char* argv[] )
   evolution->SetEquationContainer( equationContainer );
   evolution->SetStoppingCriterion( criterion );
   evolution->SetLevelSetContainer( lscontainer );
-  evolution->SetDomainMapFilter( domainMapFilter );
 
   try
     {
@@ -281,30 +280,6 @@ int itkTwoLevelSetMalcolm2DTest( int argc, char* argv[] )
     std::cout << err << std::endl;
     }
 
-  LevelSetOutputRealType internalmean1 = cvInternalTerm0->GetMean();
-  LevelSetOutputRealType internalmean2 = cvInternalTerm1->GetMean();
-//   if ( ( internalmean1 < 16400 ) || ( internalmean1 > 16500 ) )
-//   {
-//     std::cout << "( ( mean1 < 16400 ) || ( mean1 > 16500 ) )" << std::endl;
-//     std::cout << "internalmean1 = " << internalmean1 <<std::endl;
-//     return EXIT_FAILURE;
-//   }
-
-  LevelSetOutputRealType externalmean1 = cvExternalTerm0->GetMean();
-  LevelSetOutputRealType externalmean2 = cvExternalTerm1->GetMean();
-//   if ( ( externalmean1 < 650 ) || ( externalmean1 > 660 ) )
-//   {
-//     std::cout << "( ( externalmean1 < 650 ) || ( externalmean1 > 660 ) )" <<std::endl;
-//     std::cout << "externalmean1 = " << externalmean1 <<std::endl;
-//     return EXIT_FAILURE;
-//   }
-
-//  if ( ( internalmean1 != internalmean2  ) || ( externalmean1 != externalmean2 ) )
-//  {
-//    std::cout << "internalmean = " << internalmean1 <<std::endl;
-//    std::cout << "externalmean = " << externalmean1 <<std::endl;
-//    return EXIT_FAILURE;
-//  }
 
   return EXIT_SUCCESS;
 }

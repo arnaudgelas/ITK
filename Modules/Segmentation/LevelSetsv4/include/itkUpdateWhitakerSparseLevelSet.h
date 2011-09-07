@@ -86,6 +86,9 @@ public:
   typedef TEquationContainer                      EquationContainerType;
   typedef typename EquationContainerType::Pointer EquationContainerPointer;
 
+  typedef typename EquationContainerType::TermContainerType     TermContainerType;
+  typedef typename EquationContainerType::TermContainerPointer  TermContainerPointer;
+
   typedef Image< LevelSetLayerIdType, ImageDimension >  LabelImageType;
   typedef typename LabelImageType::Pointer              LabelImagePointer;
 
@@ -124,6 +127,40 @@ protected:
   UpdateWhitakerSparseLevelSet();
   virtual ~UpdateWhitakerSparseLevelSet();
 
+  /** Update zero level set layer by moving relevant points to layers -1 or 1 */
+  void UpdateLayerZero();
+
+  /** Update -1 level set layer by moving relevant points to layers -2 or 0 */
+  void UpdateLayerMinus1();
+
+  /** Update +1 level set layer by moving relevant points to layers 0 or 2 */
+  void UpdateLayerPlus1();
+
+  /** Update zero level set layer by moving relevant points to layers -3 or -1 */
+  void UpdateLayerMinus2();
+
+  /** Update +2 level set layer by moving relevant points to layers 1 or 3 */
+  void UpdateLayerPlus2();
+
+  /** Move identified points into 0 level set layer */
+  void MovePointIntoZeroLevelSet();
+
+  /** Move identified points into -1 level set layer */
+  void MovePointFromMinus1();
+
+  /** Move identified points into +1 level set layer */
+  void MovePointFromPlus1();
+
+  /** Move identified points into -2 level set layer */
+  void MovePointFromMinus2();
+
+  /** Move identified points into +2 level set layer */
+  void MovePointFromPlus2();
+
+private:
+  UpdateWhitakerSparseLevelSet( const Self& ); // purposely not implemented
+  void operator = ( const Self& );  // purposely not implemented
+
   LevelSetOutputType m_TimeStep;
   LevelSetOutputType m_RMSChangeAccumulator;
   IdentifierType     m_CurrentLevelSetId;
@@ -144,39 +181,7 @@ protected:
 
   typedef ShapedNeighborhoodIterator< LabelImageType > NeighborhoodIteratorType;
 
-  /** Update zero level set layer by moving relevant points to layers -1 or 1 */
-  void UpdateZeroLevelSet();
-
-  /** Update -1 level set layer by moving relevant points to layers -2 or 0 */
-  void UpdateLminus1();
-
-  /** Update +1 level set layer by moving relevant points to layers 0 or 2 */
-  void UpdateLplus1();
-
-  /** Update zero level set layer by moving relevant points to layers -3 or -1 */
-  void UpdateLminus2();
-
-  /** Update +2 level set layer by moving relevant points to layers 1 or 3 */
-  void UpdateLplus2();
-
-  /** Move identified points into 0 level set layer */
-  void MovePointIntoZeroLevelSet();
-
-  /** Move identified points into -1 level set layer */
-  void MovePointFromMinus1();
-
-  /** Move identified points into +1 level set layer */
-  void MovePointFromPlus1();
-
-  /** Move identified points into -2 level set layer */
-  void MovePointFromMinus2();
-
-  /** Move identified points into +2 level set layer */
-  void MovePointFromPlus2();
-
-private:
-  UpdateWhitakerSparseLevelSet( const Self& );
-  void operator = ( const Self& );
+  typedef std::pair< LevelSetInputType, LevelSetOutputType > NodePairType;
 };
 }
 

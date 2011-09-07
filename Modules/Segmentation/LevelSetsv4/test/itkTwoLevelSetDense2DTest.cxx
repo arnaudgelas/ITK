@@ -120,7 +120,10 @@ int itkTwoLevelSetDense2DTest( int argc, char* argv[] )
   //  only after the \code{Update()} methods of this filter has been called
   //  directly or indirectly.
   //
-  fastMarching->SetOutputSize( input->GetBufferedRegion().GetSize() );
+  InputImageType::RegionType inputBufferedRegion = input->GetBufferedRegion();
+  InputImageType::SizeType  inputBufferedRegionSize = inputBufferedRegion.GetSize();
+
+  fastMarching->SetOutputSize( inputBufferedRegionSize );
   fastMarching->Update();
 
   IdListType list_ids;
@@ -161,9 +164,9 @@ int itkTwoLevelSetDense2DTest( int argc, char* argv[] )
 
   LevelSetNotYetAdded = lscontainer->AddLevelSet( 1, level_set2, false );
   if ( !LevelSetNotYetAdded )
-  {
+    {
     return EXIT_FAILURE;
-  }
+    }
   std::cout << "Level set container created" << std::endl;
 
   // **************** CREATE ALL TERMS ****************
@@ -256,18 +259,6 @@ int itkTwoLevelSetDense2DTest( int argc, char* argv[] )
     std::cerr << err << std::endl;
     return EXIT_FAILURE;
     }
-
-//   PixelType mean = cvInternalTerm0->GetMean();
-//   if ( ( mean < 24900 ) || ( mean > 24910 ) )
-//   {
-//     return EXIT_FAILURE;
-//   }
-//
-//   mean = cvExternalTerm0->GetMean();
-//   if ( ( mean < 1350 ) || ( mean > 1360 ) )
-//   {
-//     return EXIT_FAILURE;
-//   }
 
   return EXIT_SUCCESS;
 }

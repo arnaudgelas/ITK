@@ -134,20 +134,12 @@ public:
   itkGetObjectMacro( StoppingCriterion, StoppingCriterionType );
   itkSetObjectMacro( StoppingCriterion, StoppingCriterionType );
 
-  /** Set/Get the domain map image filter */
-  itkSetObjectMacro( DomainMapFilter, DomainMapImageFilterType );
-  itkGetObjectMacro( DomainMapFilter, DomainMapImageFilterType );
-
 protected:
   LevelSetMalcolmEvolutionBase();
   virtual ~LevelSetMalcolmEvolutionBase();
 
-  StoppingCriterionPointer    m_StoppingCriterion;
-
   EquationContainerPointer    m_EquationContainer;
   LevelSetContainerPointer    m_LevelSetContainer;
-
-  DomainMapImageFilterPointer m_DomainMapFilter;
 
   LevelSetOutputRealType      m_Alpha;
   LevelSetOutputRealType      m_Dt;
@@ -166,7 +158,7 @@ protected:
 
   /** Run the iterative loops of calculating levelset function updates until
    *  the stopping criterion is satisfied */
-  void GenerateData();
+  void RunOneIteration();
 
   /** Initialize the iteration by computing parameters in the terms of the level set equation */
   void InitializeIteration();
@@ -178,6 +170,9 @@ protected:
 private:
   LevelSetMalcolmEvolutionBase( const Self& ); // purposely not implemented
   void operator = ( const Self& );  // purposely not implemented
+
+  StoppingCriterionPointer    m_StoppingCriterion;
+
 };
 }
 #ifndef ITK_MANUAL_INSTANTIATION

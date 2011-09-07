@@ -104,11 +104,7 @@ public:
 
 protected:
   UpdateMalcolmSparseLevelSet();
-
   virtual ~UpdateMalcolmSparseLevelSet();
-
-  // input
-  LevelSetPointer   m_InputLevelSet;
 
   // output
   LevelSetPointer   m_OutputLevelSet;
@@ -119,7 +115,7 @@ protected:
   LevelSetOutputRealType   m_RMSChangeAccumulator;
   EquationContainerPointer m_EquationContainer;
 
-  typedef Image< char, ImageDimension >     LabelImageType;
+  typedef Image< int8_t, ImageDimension >   LabelImageType;
   typedef typename LabelImageType::Pointer  LabelImagePointer;
 
   LabelImagePointer m_InternalImage;
@@ -146,10 +142,19 @@ protected:
   void CompactLayersToSinglePixelThickness();
 
 private:
-  UpdateMalcolmSparseLevelSet( const Self& );
-  void operator = ( const Self& );
+  UpdateMalcolmSparseLevelSet( const Self& ); // purposely not implemented
+  void operator = ( const Self& );            // purposely not implemented
+
+  // input
+  LevelSetPointer   m_InputLevelSet;
+
+  typedef std::pair< LevelSetInputType, LevelSetOutputType > NodePairType;
+
 };
 }
 
+#ifndef ITK_MANUAL_INSTANTIATION
 #include "itkUpdateMalcolmSparseLevelSet.hxx"
+#endif
+
 #endif // __itkUpdateMalcolmSparseLevelSet_h

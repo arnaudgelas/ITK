@@ -103,10 +103,10 @@ int itkTwoLevelSetSparse2DTest( int argc, char* argv[] )
   InputIteratorType iIt( binary, region );
   iIt.GoToBegin();
   while( !iIt.IsAtEnd() )
-  {
+    {
     iIt.Set( itk::NumericTraits<InputPixelType>::One );
     ++iIt;
-  }
+    }
 
   // Convert binary mask to sparse level set
   BinaryToSparseAdaptorType::Pointer adaptor0 = BinaryToSparseAdaptorType::New();
@@ -155,9 +155,9 @@ int itkTwoLevelSetSparse2DTest( int argc, char* argv[] )
 
   levelSetNotYetAdded = lscontainer->AddLevelSet( 1, level_set1, false );
   if ( !levelSetNotYetAdded )
-  {
+    {
     return EXIT_FAILURE;
-  }
+    }
   std::cout << "Level set container created" << std::endl;
 
   // **************** CREATE ALL TERMS ****************
@@ -238,7 +238,6 @@ int itkTwoLevelSetSparse2DTest( int argc, char* argv[] )
   evolution->SetEquationContainer( equationContainer );
   evolution->SetStoppingCriterion( criterion );
   evolution->SetLevelSetContainer( lscontainer );
-  evolution->SetDomainMapFilter( domainMapFilter );
 
   try
     {
@@ -283,32 +282,6 @@ int itkTwoLevelSetSparse2DTest( int argc, char* argv[] )
     {
     std::cout << err << std::endl;
     }
-
-//  PixelType internalmean1 = cvInternalTerm0->GetMean();
-//  PixelType internalmean2 = cvInternalTerm1->GetMean();
-//  if ( ( internalmean1 < 42100 ) || ( internalmean1 > 42150 ) )
-//  {
-//    std::cout << "( ( mean1 < 42100 ) || ( mean1 > 42150 ) )" <<std::endl;
-//    std::cout << "internalmean1 = " << internalmean1 <<std::endl;
-//    return EXIT_FAILURE;
-//  }
-
-//  PixelType externalmean1 = cvExternalTerm0->GetMean();
-//  PixelType externalmean2 = cvExternalTerm1->GetMean();
-//  if ( ( externalmean1 < 1500 ) || ( externalmean1 > 1550 ) )
-//  {
-//    std::cout << "( ( externalmean1 < 1500 ) || ( externalmean1 > 1550 ) )" <<std::endl;
-//    std::cout << "externalmean1 = " << externalmean1 <<std::endl;
-//    return EXIT_FAILURE;
-//  }
-
-
-//  if ( ( internalmean1 != internalmean2  ) || ( externalmean1 != externalmean2 ) )
-//  {
-//    std::cout << "internalmean = " << internalmean1 <<std::endl;
-//    std::cout << "externalmean = " << externalmean1 <<std::endl;
-//    return EXIT_FAILURE;
-//  }
 
   return EXIT_SUCCESS;
 }

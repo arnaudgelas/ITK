@@ -74,10 +74,10 @@ int itkMultiLevelSetChanAndVeseInternalTermTest( int , char* [] )
   InputIteratorType it( input, input->GetLargestPossibleRegion() );
   it.GoToBegin();
   while( !it.IsAtEnd() )
-  {
+    {
     it.Set( 1 );
     ++it;
-  }
+    }
 
   ImageType::Pointer input1 = ImageType::New();
   input1->SetRegions( region );

@@ -106,9 +106,6 @@ protected:
   UpdateShiSparseLevelSet();
   virtual ~UpdateShiSparseLevelSet();
 
-  // input
-  LevelSetPointer   m_InputLevelSet;
-
   // output
   LevelSetPointer   m_OutputLevelSet;
 
@@ -116,7 +113,7 @@ protected:
   LevelSetOutputRealType   m_RMSChangeAccumulator;
   EquationContainerPointer m_EquationContainer;
 
-  typedef Image< char, ImageDimension >     LabelImageType;
+  typedef Image< int8_t, ImageDimension >   LabelImageType;
   typedef typename LabelImageType::Pointer  LabelImagePointer;
 
   LabelImagePointer m_InternalImage;
@@ -127,10 +124,10 @@ protected:
   // this is the same as Procedure 2
   // Input is a update image point m_UpdateImage
   // Input is also ShiSparseLevelSetBasePointer
-  void UpdateLout();
+  void UpdateLayerPlusOne();
 
   /** Update -1 level set layers by checking the direction of the movement towards +1 */
-  void UpdateLin();
+  void UpdateLayerMinusOne();
 
   /** Return true if there is a pixel from the opposite layer (+1 or -1) moving in the same direction */
   bool Con( const LevelSetInputType& iIdx,
@@ -140,6 +137,11 @@ protected:
 private:
   UpdateShiSparseLevelSet( const Self& ); // purposely not implemented
   void operator = ( const Self& );  // purposely not implemented
+
+  // input
+  LevelSetPointer   m_InputLevelSet;
+
+  typedef std::pair< LevelSetInputType, LevelSetOutputType > NodePairType;
 };
 }
 

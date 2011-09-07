@@ -104,14 +104,13 @@ public:
 
 protected:
   LevelSetQuadEdgeMeshBase();
-
   virtual ~LevelSetQuadEdgeMeshBase();
 
-  MeshPointer m_Mesh;
-
 private:
-  LevelSetQuadEdgeMeshBase( const Self& );
-  void operator = ( const Self& );
+  LevelSetQuadEdgeMeshBase( const Self& );  // purposely not implemented
+  void operator = ( const Self& );          // purposely not implemented
+
+  MeshPointer m_Mesh;
 };
 }
 

@@ -274,7 +274,8 @@ protected:
   /** \brief Default Destructor */
   ~LevelSetContainerBase();
 
-  LevelSetContainerType         m_Container;
+  const LevelSetContainerType& GetContainer() const;
+  void SetContainer( const LevelSetContainerType& iContainer );
 
 private:
   LevelSetContainerBase( const Self & ); // purposely not implemented
@@ -282,6 +283,7 @@ private:
 
   HeavisidePointer              m_Heaviside;
   DomainMapImageFilterPointer   m_DomainMapFilter;
+  LevelSetContainerType         m_Container;
 };
 
 }

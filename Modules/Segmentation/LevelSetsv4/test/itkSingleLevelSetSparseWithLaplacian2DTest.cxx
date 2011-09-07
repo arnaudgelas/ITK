@@ -112,10 +112,10 @@ int itkSingleLevelSetSparseWithLaplacian2DTest( int argc, char* argv[] )
   InputIteratorType iIt( binary, region );
   iIt.GoToBegin();
   while( !iIt.IsAtEnd() )
-  {
+    {
     iIt.Set( itk::NumericTraits<InputPixelType>::One );
     ++iIt;
-  }
+    }
 
   // Convert binary mask to sparse level set
   BinaryToSparseAdaptorType::Pointer adaptor = BinaryToSparseAdaptorType::New();
@@ -244,18 +244,6 @@ int itkSingleLevelSetSparseWithLaplacian2DTest( int argc, char* argv[] )
     {
     std::cout << err << std::endl;
     }
-
-//   PixelType mean = cvInternalTerm0->GetMean();
-//   if ( ( mean < 24900 ) || ( mean > 24910 ) )
-//   {
-//     return EXIT_FAILURE;
-//   }
-//
-//   mean = cvExternalTerm0->GetMean();
-//   if ( ( mean < 1350 ) || ( mean > 1360 ) )
-//   {
-//     return EXIT_FAILURE;
-//   }
 
   return EXIT_SUCCESS;
 }

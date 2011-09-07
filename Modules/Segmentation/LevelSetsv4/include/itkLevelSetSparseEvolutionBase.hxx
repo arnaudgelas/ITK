@@ -30,7 +30,7 @@ LevelSetSparseEvolutionBase<TEquationContainer>
 {
   this->m_Alpha = 0.9;
   this->m_Dt = 1.;
-  this->m_RMSChangeAccumulator = -1.;
+  this->m_RMSChangeAccumulator = 0.;
   this->m_UserDefinedDt = false;
 }
 
@@ -61,8 +61,6 @@ LevelSetSparseEvolutionBase<TEquationContainer>
     itkGenericExceptionMacro( << "m_EquationContainer->GetEquation( 0 ) is NULL" );
     }
 
-  this->m_DomainMapFilter = this->m_LevelSetContainer->GetDomainMapFilter();
-
   // Get the image to be segmented
   InputImageConstPointer inputImage = this->m_EquationContainer->GetInput();
 
@@ -72,7 +70,11 @@ LevelSetSparseEvolutionBase<TEquationContainer>
     }
 
   // Get the LevelSetContainer from the EquationContainer
-  this->m_LevelSetContainer = this->m_EquationContainer->GetEquation( 0 )->GetTerm( 0 )->GetLevelSetContainer();
+  TermContainerPointer termContainer = this->m_EquationContainer->GetEquation( 0 );
+
+  TermPointer term0 = termContainer->GetTerm( 0 );
+
+  this->m_LevelSetContainer = term0->GetLevelSetContainer();
 
   if( this->m_StoppingCriterion.IsNull() )
     {
@@ -80,7 +82,7 @@ LevelSetSparseEvolutionBase<TEquationContainer>
     }
 
   //Run iteration
-  this->GenerateData();
+  this->RunOneIteration();
 }
 
 template< class TEquationContainer >
@@ -133,7 +135,7 @@ LevelSetSparseEvolutionBase<TEquationContainer>
 template< class TEquationContainer >
 void
 LevelSetSparseEvolutionBase<TEquationContainer>
-::GenerateData()
+::RunOneIteration()
 {
   this->AllocateUpdateBuffer();
 
@@ -171,8 +173,10 @@ LevelSetSparseEvolutionBase<TEquationContainer>
 {
   InputImageConstPointer inputImage = this->m_EquationContainer->GetInput();
 
-  DomainIteratorType map_it = this->m_DomainMapFilter->m_LevelSetMap.begin();
-  DomainIteratorType map_end = this->m_DomainMapFilter->m_LevelSetMap.end();
+  DomainMapImageFilterPointer domainMapFilter = this->m_LevelSetContainer->GetDomainMapFilter();
+
+  DomainIteratorType map_it  = domainMapFilter->m_LevelSetMap.begin();
+  DomainIteratorType map_end = domainMapFilter->m_LevelSetMap.end();
 
   // Initialize parameters here
   this->m_EquationContainer->InitializeParameters();
@@ -232,7 +236,7 @@ LevelSetSparseEvolutionBase<TEquationContainer>
           static_cast< LevelSetOutputType >( termContainer->Evaluate( idx, characteristics ) );
 
       this->m_UpdateBuffer[ levelSetId ]->insert(
-            std::pair< LevelSetInputType, LevelSetOutputType >( idx, temp_update ) );
+            NodePairType( idx, temp_update ) );
 
       ++list_it;
       }
