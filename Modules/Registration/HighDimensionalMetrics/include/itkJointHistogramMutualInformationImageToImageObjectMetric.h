@@ -288,13 +288,13 @@ protected:
    * */
   template < class TDomainPartitioner >
   class JointHistogramMutualInformationGetValueAndDerivativeThreader
-    : public ImageToImageObjectMetric< TFixedImage, TMovingImage, TVirtualImage >::template GetValueAndDerivativeThreader< TDomainPartitioner >
+    : public Superclass::template GetValueAndDerivativeThreader< TDomainPartitioner >
   {
   public:
     /** Standard class typedefs. */
     typedef JointHistogramMutualInformationGetValueAndDerivativeThreader    Self;
     typedef typename ImageToImageObjectMetric< TFixedImage, TMovingImage, TVirtualImage >
-      ::template GetValueAndDerivativeThreader< TDomainPartitioner >                 Superclass;
+      ::template GetValueAndDerivativeThreader< TDomainPartitioner >        Superclass;
     typedef SmartPointer< Self >                                            Pointer;
     typedef SmartPointer< const Self >                                      ConstPointer;
 

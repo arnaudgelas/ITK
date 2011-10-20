@@ -134,7 +134,7 @@ public:
 
     virtual void ThreadedExecution( Superclass::EnclosingClassType * itkNotUsed(enclosingClass),
                                     const Superclass::DomainType& itkNotUsed(domain),
-                                    itk::ThreadIdType threadId )
+                                    const itk::ThreadIdType threadId )
       {
       if( threadId == 0 )
         {

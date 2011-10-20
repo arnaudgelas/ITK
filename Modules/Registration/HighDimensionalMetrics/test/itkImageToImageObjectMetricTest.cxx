@@ -113,7 +113,7 @@ protected:
           const MovingImageGradientType &   mappedMovingImageGradient,
           MeasureType &                     metricValueResult,
           DerivativeType &                  localDerivativeReturn,
-          const itk::ThreadIdType           threadId ) const
+          const itk::ThreadIdType           itkNotUsed( threadId ) ) const
       {
       /* Just return some test values that can verify proper mechanics */
       metricValueResult = mappedFixedPixelValue + mappedMovingPixelValue;

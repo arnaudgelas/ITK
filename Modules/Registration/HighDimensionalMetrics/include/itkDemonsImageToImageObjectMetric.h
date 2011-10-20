@@ -94,13 +94,13 @@ protected:
    * */
   template < class TDomainPartitioner >
   class DemonsGetValueAndDerivativeThreader
-    : public ImageToImageObjectMetric< TFixedImage, TMovingImage, TVirtualImage >::template GetValueAndDerivativeThreader< TDomainPartitioner >
+    : public Superclass::template GetValueAndDerivativeThreader< TDomainPartitioner >
   {
   public:
     /** Standard class typedefs. */
-    typedef DemonsGetValueAndDerivativeThreader    Self;
+    typedef DemonsGetValueAndDerivativeThreader                             Self;
     typedef typename ImageToImageObjectMetric< TFixedImage, TMovingImage, TVirtualImage >
-      ::template GetValueAndDerivativeThreader< TDomainPartitioner >                 Superclass;
+      ::template GetValueAndDerivativeThreader< TDomainPartitioner >        Superclass;
     typedef SmartPointer< Self >                                            Pointer;
     typedef SmartPointer< const Self >                                      ConstPointer;
 

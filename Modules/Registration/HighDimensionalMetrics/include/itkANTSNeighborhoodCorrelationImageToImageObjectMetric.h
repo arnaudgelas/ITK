@@ -228,15 +228,15 @@ protected:
    * */
   template < class TDomainPartitioner >
   class NeighborhoodScanningWindowGetValueAndDerivativeThreader
-    : public ImageToImageObjectMetric< TFixedImage, TMovingImage, TVirtualImage >::template GetValueAndDerivativeThreader< TDomainPartitioner >
+    : public Superclass::template GetValueAndDerivativeThreader< TDomainPartitioner >
   {
   public:
     /** Standard class typedefs. */
     typedef NeighborhoodScanningWindowGetValueAndDerivativeThreader    Self;
     typedef typename ImageToImageObjectMetric< TFixedImage, TMovingImage, TVirtualImage >
-      ::template GetValueAndDerivativeThreader< TDomainPartitioner >                 Superclass;
-    typedef SmartPointer< Self >                                            Pointer;
-    typedef SmartPointer< const Self >                                      ConstPointer;
+      ::template GetValueAndDerivativeThreader< TDomainPartitioner >   Superclass;
+    typedef SmartPointer< Self >                                       Pointer;
+    typedef SmartPointer< const Self >                                 ConstPointer;
 
     itkTypeMacro( NeighborhoodScanningWindowImageToImageObjectMetric::NeighborhoodScanningWindowGetValueAndDerivativeThreader,
       ImageToImageObjectMetric::GetValueAndDerivativeThreader );
