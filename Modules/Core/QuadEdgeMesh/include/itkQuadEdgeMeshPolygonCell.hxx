@@ -280,17 +280,18 @@ typename QuadEdgeMeshPolygonCell< TCellInterface >::PointIdentifier
 QuadEdgeMeshPolygonCell< TCellInterface >
 ::GetPointId(int localId) const
 {
-  int                          n = 0;
-  PointIdInternalConstIterator it = this->InternalPointIdsBegin();
+  int                          n    = 0;
+  PointIdInternalConstIterator it   = this->InternalPointIdsBegin();
+  PointIdInternalConstIterator end  = this->InternalPointIdsEnd();
 
-  while ( it != this->InternalPointIdsEnd() && n <= localId )
+  while ( it != end && n <= localId )
     {
     if ( n == localId )
       {
       return ( it.Value()->GetOrigin() );
       }
-    it++;
-    n++;
+    ++it;
+    ++n;
     }
   return ( PointIdentifier(-1) );
 }
