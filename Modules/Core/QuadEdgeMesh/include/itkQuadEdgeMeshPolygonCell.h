@@ -142,9 +142,16 @@ public:
     cell.TakeOwnership(newPolygonCell);
     if ( numberOfPoints )
       {
-      for ( PointIdentifier i = 0; i < numberOfPoints; i++ )
+      PointIdentifier i = 0;
+
+      PointIdInternalConstIterator it   = this->InternalPointIdsBegin();
+      PointIdInternalConstIterator end  = this->InternalPointIdsEnd();
+
+      while( it != end )
         {
-        newPolygonCell->SetPointId( i, this->GetPointId(i) );
+        newPolygonCell->SetPointId( i, it.Value()->GetOrigin() );
+        ++i;
+        ++it;
         }
       }
   }
