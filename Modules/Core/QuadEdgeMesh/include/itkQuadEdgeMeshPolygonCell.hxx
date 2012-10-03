@@ -223,14 +223,15 @@ void QuadEdgeMeshPolygonCell< TCellInterface >
 ::SetPointIds(PointIdConstIterator first,
               PointIdConstIterator last)
 {
-  PointIdInternalIterator i1 = this->InternalPointIdsBegin();
-  PointIdConstIterator    i2 = first;
+  PointIdInternalIterator i1  = this->InternalPointIdsBegin();
+  PointIdInternalIterator end = this->InternalPointIdsEnd();
+  PointIdConstIterator    i2  = first;
 
-  while ( i1 != this->InternalPointIdsEnd() && i2 != last )
+  while ( i1 != end && i2 != last )
     {
     i1.Value()->SetOrigin(*i2);
-    i1++;
-    i2++;
+    ++i1;
+    ++i2;
     }
 }
 
